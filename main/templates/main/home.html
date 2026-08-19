@@ -10,6 +10,7 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             height: 100%;
+            overflow-x: hidden; /* Prevents side scrolling on phones */
         }
         .hero-background {
             background-image: url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1920&q=80');
@@ -20,6 +21,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            padding: 20px 0; /* Adds spacing for mobile views */
         }
         .overlay {
             position: absolute;
@@ -33,16 +35,18 @@
             position: relative;
             z-index: 2;
             display: flex;
+            flex-direction: column; /* Stacked by default for mobile screens */
             max-width: 1200px;
             width: 90%;
-            gap: 50px;
+            gap: 30px;
             align-items: center;
             justify-content: space-between;
-            padding: 40px 0;
+            padding: 20px 0;
         }
         .hero-left {
             flex: 1;
             color: #ffffff;
+            width: 100%;
         }
         .brand-logo {
             font-size: 26px;
@@ -52,35 +56,38 @@
             letter-spacing: 1px;
         }
         .hero-left h1 {
-            font-size: 42px;
+            font-size: 32px; /* Adjusted smaller for mobile screens */
             line-height: 1.2;
             margin-bottom: 15px;
         }
         .hero-subtitle {
-            font-size: 16px;
+            font-size: 15px;
             color: #cbd5e1;
             margin-bottom: 30px;
         }
         .stats-container {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             margin-bottom: 30px;
+            flex-wrap: wrap; /* Wraps boxes if screen is too small */
         }
         .stat-box {
             background: rgba(255, 255, 255, 0.08);
-            padding: 15px 20px;
+            padding: 12px 15px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             text-align: center;
+            flex: 1;
+            min-width: 80px;
         }
         .stat-box h3 {
             margin: 0;
-            font-size: 22px;
+            font-size: 20px;
             color: #ff3366;
         }
         .stat-box p {
             margin: 5px 0 0;
-            font-size: 12px;
+            font-size: 11px;
             color: #94a3b8;
         }
         .testimonial-box {
@@ -105,13 +112,14 @@
         .form-container {
             flex: 1;
             background: rgba(15, 23, 42, 0.95);
-            padding: 40px;
+            padding: 25px; /* Compact padding for phone screens */
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ffffff;
+            width: 100%;
             max-width: 500px;
-            max-height: 85vh;
-            overflow-y: auto;
+            box-sizing: border-box;
+            max-height: none; /* Removes strict limit so it flows nicely on mobile */
         }
         .form-container p {
             margin-bottom: 12px;
@@ -140,6 +148,23 @@
         }
         .submit-btn:hover {
             background: #e02e5b;
+        }
+
+        /* Desktop Media Query: Restores your original side-by-side layout on computers */
+        @media (min-width: 900px) {
+            .hero-content-wrapper {
+                flex-direction: row;
+                gap: 50px;
+                padding: 40px 0;
+            }
+            .hero-left h1 {
+                font-size: 42px;
+            }
+            .form-container {
+                padding: 40px;
+                max-height: 85vh;
+                overflow-y: auto;
+            }
         }
     </style>
 </head>
