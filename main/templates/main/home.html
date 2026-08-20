@@ -10,7 +10,7 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             height: 100%;
-            overflow-x: hidden; /* Prevents side scrolling on phones */
+            overflow-x: hidden;
         }
         .hero-background {
             background-image: url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1920&q=80');
@@ -21,7 +21,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 20px 0; /* Adds spacing for mobile views */
+            padding: 20px 0;
         }
         .overlay {
             position: absolute;
@@ -35,7 +35,7 @@
             position: relative;
             z-index: 2;
             display: flex;
-            flex-direction: column; /* Stacked by default for mobile screens */
+            flex-direction: column;
             max-width: 1200px;
             width: 90%;
             gap: 30px;
@@ -56,7 +56,7 @@
             letter-spacing: 1px;
         }
         .hero-left h1 {
-            font-size: 32px; /* Adjusted smaller for mobile screens */
+            font-size: 32px;
             line-height: 1.2;
             margin-bottom: 15px;
         }
@@ -69,7 +69,7 @@
             display: flex;
             gap: 15px;
             margin-bottom: 30px;
-            flex-wrap: wrap; /* Wraps boxes if screen is too small */
+            flex-wrap: wrap;
         }
         .stat-box {
             background: rgba(255, 255, 255, 0.08);
@@ -112,14 +112,13 @@
         .form-container {
             flex: 1;
             background: rgba(15, 23, 42, 0.95);
-            padding: 25px; /* Compact padding for phone screens */
+            padding: 25px;
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ffffff;
             width: 100%;
             max-width: 500px;
             box-sizing: border-box;
-            max-height: none; /* Removes strict limit so it flows nicely on mobile */
         }
         .form-container p {
             margin-bottom: 12px;
@@ -149,8 +148,17 @@
         .submit-btn:hover {
             background: #e02e5b;
         }
+        .footer-note {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .footer-note a {
+            color: #ff3366;
+            text-decoration: none;
+        }
 
-        /* Desktop Media Query: Restores your original side-by-side layout on computers */
         @media (min-width: 900px) {
             .hero-content-wrapper {
                 flex-direction: row;
@@ -162,8 +170,6 @@
             }
             .form-container {
                 padding: 40px;
-                max-height: 85vh;
-                overflow-y: auto;
             }
         }
     </style>
@@ -173,10 +179,9 @@
         <div class="overlay"></div>
         <div class="hero-content-wrapper">
             <div class="hero-left">
-                <!-- AURAMATCH positioned at the absolute top -->
                 <div class="brand-logo">❤️ AURAMATCH</div>
                 <h1>Find Your Forever Connection Today</h1>
-                <p class="hero-subtitle">Stop swiping endlessly. Let our expert matchmaking portal pair you with someone who truly shares your values and vision for the future.</p>
+                <p class="hero-subtitle">Stop swiping endlessly. Enjoy a 14-day free trial. Your card will only be charged once our expert matchmakers find a verified compatible match for you.</p>
                 
                 <div class="stats-container">
                     <div class="stat-box">
@@ -193,7 +198,6 @@
                     </div>
                 </div>
 
-                <!-- Rotating Testimonials Container (5 Testimonials) -->
                 <div class="testimonial-box" id="testimonial-container">
                     <p class="testimonial-text" id="t-text">"AuraMatch completely changed my life. Within weeks, I met the love of my life who shares my exact core values. Highly recommended!"</p>
                     <span class="testimonial-author" id="t-author">— Sarah & David, New York</span>
@@ -201,19 +205,21 @@
             </div>
 
             <div class="form-container">
-                <h2>Begin Your Matchmaking Journey</h2>
-                <p>Fill out your initial details below to create your account and connect with exclusive matches.</p>
+                <h2>Start Your 14-Day Free Trial</h2>
+                <p style="font-size: 13px; color: #cbd5e1;">No upfront charge. Card is only billed when a compatible match is delivered.</p>
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    <button type="submit" class="submit-btn">Register & Continue</button>
+                    <button type="submit" class="submit-btn">Start Free Trial & Register</button>
                 </form>
+                <div class="footer-note">
+                    <a href="/terms/">Terms & Conditions & Privacy Policy</a>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Array of 5 Testimonials (Non-African locations)
         const testimonials = [
             { text: "\"AuraMatch completely changed my life. Within weeks, I met the love of my life who shares my exact core values. Highly recommended!\"", author: "— Sarah & David, New York" },
             { text: "\"The questionnaire matching is unreal. We both connected on a deeper level instantly. Thank you for bringing us together!\"", author: "— Emily & James, London" },
@@ -235,7 +241,7 @@
                 authorElement.innerText = testimonials[currentIndex].author;
                 boxElement.style.opacity = 1;
             }, 500);
-        }, 4000); // Changes every 4 seconds
+        }, 4000);
     </script>
 </body>
 </html>

@@ -44,7 +44,7 @@ def home_view(request):
                         f'{profile.verification_code}\nEnter this code on the '
                         'verification page to proceed to your matchmaker questionnaire.'
                     ),
-                    from_email='noreply@auramatch.com',
+                    from_email='auramatchdate@gmail.com',
                     recipient_list=[profile.email],
                     fail_silently=True,
                 )
