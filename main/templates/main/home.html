@@ -220,14 +220,15 @@
             </div>
 
             <div class="forms-wrapper">
+                <!-- Registration Form Container -->
                 <div class="form-container">
                     <h2 style="font-size: 20px; margin-top: 0; margin-bottom: 5px;">Start Your 14-Day Free Trial</h2>
                     <p style="font-size: 12px; color: #cbd5e1;">No upfront charge. Card is only billed when a compatible match is delivered.</p>
                     
+                    <!-- Added enctype="multipart/form-data" to safely process profile images -->
                     <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
+                        {% csrf_token %>
                         
-                        <!-- Visible Error Banner so form doesn't stay silently stuck -->
                         {% if form.errors %}
                             <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px; color: #fca5a5;">
                                 <strong>Please fix the errors below:</strong>
@@ -244,6 +245,7 @@
                     </div>
                 </div>
 
+                <!-- Login Form Container -->
                 <div class="form-container" style="background: rgba(10, 15, 30, 0.95);">
                     <h3 style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">Already Registered?</h3>
                     <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px;">Log in instantly with your registered email address.</p>

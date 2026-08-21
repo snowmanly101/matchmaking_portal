@@ -29,7 +29,7 @@ def home_view(request):
                 if not profile.is_verified:
                     request.session['pending_user_id'] = profile.id
                     return redirect('verify_email')
-                elif profile.status == 'Under Review - Pending Interview' or getattr(profile, 'questionnaire_completed', False):
+                elif profile.status == 'Under Review - Pending Interview':
                     return redirect('portal')
                 else:
                     return redirect('questionnaire_step', step=1)
@@ -83,9 +83,8 @@ def home_view(request):
                 request.session['pending_user_id'] = profile.id
                 return redirect('verify_email')
             else:
-                # This prints form errors to your console/logs if validation fails
-                print("Registration Form Errors:", form.errors)
-                messages.error(request, 'Please correct the errors in the form.')
+                # If form validation fails, render template back with the invalid form showing errors
+                return render(request, 'main/home.html', {'form': form})
     else:
         form = MatchProfileForm()
         
