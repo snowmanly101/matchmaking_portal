@@ -17,50 +17,80 @@ from .models import MatchProfile
 
 def home_view(request):
     if request.method == 'POST':
-        form = MatchProfileForm(request.POST, request.FILES)
-        if form.is_valid():
-            email = form.cleaned_data.get('email')
+        # Handle Returning User Quick Login
+        if 'login' in request.POST:
+            login_email = request.POST.get('login_email')
+            profile = MatchProfile.objects.filter(email=login_email).first()
             
-            # Check if email already exists
-            if MatchProfile.objects.filter(email=email).exists():
-                messages.error(
-                    request,
-                    'This email is already registered. Please login or use a different email.'
-                )
+            if profile:
+                # Log them into the session
+                request.session['user_id'] = profile.id
+                messages.success(request, "Welcome back!")
+                
+                # Check their progress and route them appropriately
+                if not profile.is_verified:
+                    request.session['pending_user_id'] = profile.id
+                    return redirect('verify_email')
+                elif profile.status == 'Under Review - Pending Interview' or getattr(profile, 'questionnaire_completed', False):
+                    return redirect('portal')
+                else:
+                    return redirect('questionnaire_step', step=1)
+            else:
+                messages.error(request, 'No account found with this email address. Please register.')
                 return redirect('home')
-            
-            profile = form.save()
-            
-            # Generate verification code if method exists
-            if hasattr(profile, 'generate_code'):
-                profile.generate_code()
-            
-            # Attempt to send email verification code
-            try:
-                send_mail(
-                    subject='Your AuraMatch Verification Code',
-                    message=(
-                        f'Hello {profile.full_name},\n\nYour verification code is:\n'
-                        f'{profile.verification_code}\nEnter this code on the '
-                        'verification page to proceed to your matchmaker questionnaire.'
-                    ),
-                    from_email='auramatchdate@gmail.com',
-                    recipient_list=[profile.email],
-                    fail_silently=True,
-                )
-            except Exception:
-                pass
 
-            # Store user ID in session for verification tracking
-            request.session['pending_user_id'] = profile.id
-            return redirect('verify_email')
+        # Handle New User Registration Form
+        elif 'register' in request.POST:
+            form = MatchProfileForm(request.POST, request.FILES)
+            if form.is_valid():
+                email = form.cleaned_data.get('email')
+                
+                # Check if email already exists
+                existing_profile = MatchProfile.objects.filter(email=email).first()
+                if existing_profile:
+                    request.session['user_id'] = existing_profile.id
+                    request.session['pending_user_id'] = existing_profile.id
+                    messages.info(request, 'An account with this email already exists. Logging you in...')
+                    
+                    if not existing_profile.is_verified:
+                        return redirect('verify_email')
+                    elif existing_profile.status == 'Under Review - Pending Interview':
+                        return redirect('portal')
+                    else:
+                        return redirect('questionnaire_step', step=1)
+                
+                profile = form.save()
+                
+                # Generate verification code if method exists
+                if hasattr(profile, 'generate_code'):
+                    profile.generate_code()
+                
+                # Attempt to send email verification code
+                try:
+                    send_mail(
+                        subject='Your AuraMatch Verification Code',
+                        message=(
+                            f'Hello {profile.full_name},\n\nYour verification code is:\n'
+                            f'{profile.verification_code}\nEnter this code on the '
+                            'verification page to proceed to your matchmaker questionnaire.'
+                        ),
+                        from_email='auramatchdate@gmail.com',
+                        recipient_list=[profile.email],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
+
+                # Store user ID in session for verification tracking
+                request.session['pending_user_id'] = profile.id
+                return redirect('verify_email')
     else:
         form = MatchProfileForm()
         
     return render(request, 'main/home.html', {'form': form})
 
 def verify_email_view(request):
-    user_id = request.session.get('pending_user_id')
+    user_id = request.session.get('pending_user_id') or request.session.get('user_id')
     if not user_id:
         return redirect('home')
 
@@ -72,7 +102,8 @@ def verify_email_view(request):
             profile.is_verified = True
             profile.save()
             request.session['user_id'] = profile.id
-            del request.session['pending_user_id']
+            if 'pending_user_id' in request.session:
+                del request.session['pending_user_id']
             return redirect('questionnaire_step', step=1)
         else:
             messages.error(
