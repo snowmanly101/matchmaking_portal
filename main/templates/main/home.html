@@ -9,8 +9,8 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100%;
-            overflow-x: hidden;
+            min-height: 100vh;
+            background-color: #0a0f1e;
         }
         .hero-background {
             background-image: url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1920&q=80');
@@ -21,7 +21,8 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 40px 0;
+            padding: 40px 20px;
+            box-sizing: border-box;
         }
         .overlay {
             position: absolute;
@@ -30,6 +31,7 @@
             width: 100%;
             height: 100%;
             background: rgba(10, 15, 30, 0.88);
+            z-index: 1;
         }
         .hero-content-wrapper {
             position: relative;
@@ -37,22 +39,24 @@
             display: flex;
             flex-direction: column;
             max-width: 1200px;
-            width: 90%;
-            gap: 30px;
+            width: 100%;
+            gap: 40px;
             align-items: center;
             justify-content: space-between;
-            padding: 20px 0;
         }
         .hero-left {
             flex: 1;
             color: #ffffff;
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .brand-logo {
             font-size: 26px;
             font-weight: bold;
             color: #ff3366;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             letter-spacing: 1px;
         }
         .hero-left h1 {
@@ -63,12 +67,13 @@
         .hero-subtitle {
             font-size: 15px;
             color: #cbd5e1;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            line-height: 1.5;
         }
         .stats-container {
             display: flex;
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
         }
         .stat-box {
@@ -182,17 +187,16 @@
             text-decoration: none;
         }
 
-        @media (min-width: 900px) {
+        @media (min-width: 992px) {
             .hero-content-wrapper {
                 flex-direction: row;
-                gap: 50px;
-                padding: 40px 0;
+                gap: 60px;
             }
             .hero-left h1 {
                 font-size: 42px;
             }
             .form-container {
-                padding: 30px;
+                padding: 35px;
             }
         }
     </style>
