@@ -43,7 +43,7 @@
             gap: 50px;
             max-width: 1200px;
             width: 100%;
-            align-items: start; /* Locks everything to the top alignment */
+            align-items: start;
         }
         .hero-left {
             color: #ffffff;
@@ -180,7 +180,6 @@
             text-decoration: none;
         }
 
-        /* Responsive layout for smaller screens */
         @media (max-width: 900px) {
             .hero-content-wrapper {
                 grid-template-columns: 1fr;
@@ -194,7 +193,6 @@
         <div class="overlay"></div>
         <div class="hero-content-wrapper">
             
-            <!-- Left Side: Locked strictly to the top -->
             <div class="hero-left">
                 <div class="brand-logo">❤️ AURAMATCH</div>
                 <h1>Find Your Forever Connection Today</h1>
@@ -221,7 +219,6 @@
                 </div>
             </div>
 
-            <!-- Right Side: Forms -->
             <div class="forms-wrapper">
                 <div class="form-container">
                     <h2 style="font-size: 20px; margin-top: 0; margin-bottom: 5px;">Start Your 14-Day Free Trial</h2>
@@ -229,6 +226,15 @@
                     
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
+                        
+                        <!-- Visible Error Banner so form doesn't stay silently stuck -->
+                        {% if form.errors %}
+                            <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px; color: #fca5a5;">
+                                <strong>Please fix the errors below:</strong>
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+
                         {{ form.as_p }}
                         <button type="submit" name="register" class="submit-btn">Start Free Trial & Register</button>
                     </form>

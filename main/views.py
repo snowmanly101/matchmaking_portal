@@ -23,11 +23,9 @@ def home_view(request):
             profile = MatchProfile.objects.filter(email=login_email).first()
             
             if profile:
-                # Log them into the session
                 request.session['user_id'] = profile.id
                 messages.success(request, "Welcome back!")
                 
-                # Check their progress and route them appropriately
                 if not profile.is_verified:
                     request.session['pending_user_id'] = profile.id
                     return redirect('verify_email')
@@ -84,6 +82,10 @@ def home_view(request):
                 # Store user ID in session for verification tracking
                 request.session['pending_user_id'] = profile.id
                 return redirect('verify_email')
+            else:
+                # This prints form errors to your console/logs if validation fails
+                print("Registration Form Errors:", form.errors)
+                messages.error(request, 'Please correct the errors in the form.')
     else:
         form = MatchProfileForm()
         
