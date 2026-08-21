@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Begin Your Journey | AuraMatch</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body, html {
             margin: 0;
             padding: 0;
@@ -22,7 +25,6 @@
             justify-content: center;
             position: relative;
             padding: 40px 20px;
-            box-sizing: border-box;
         }
         .overlay {
             position: absolute;
@@ -30,39 +32,36 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 15, 30, 0.88);
+            background: rgba(10, 15, 30, 0.9);
             z-index: 1;
         }
         .hero-content-wrapper {
             position: relative;
             z-index: 2;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr 480px;
+            gap: 50px;
             max-width: 1200px;
             width: 100%;
-            gap: 40px;
-            align-items: center;
-            justify-content: space-between;
+            align-items: start; /* Locks everything to the top alignment */
         }
         .hero-left {
-            flex: 1;
             color: #ffffff;
-            width: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
         }
         .brand-logo {
             font-size: 26px;
             font-weight: bold;
             color: #ff3366;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             letter-spacing: 1px;
+            display: inline-block;
         }
         .hero-left h1 {
-            font-size: 32px;
+            font-size: 40px;
             line-height: 1.2;
-            margin-bottom: 15px;
+            margin: 0 0 15px 0;
         }
         .hero-subtitle {
             font-size: 15px;
@@ -74,7 +73,6 @@
             display: flex;
             gap: 15px;
             margin-bottom: 25px;
-            flex-wrap: wrap;
         }
         .stat-box {
             background: rgba(255, 255, 255, 0.08);
@@ -83,7 +81,6 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             text-align: center;
             flex: 1;
-            min-width: 80px;
         }
         .stat-box h3 {
             margin: 0;
@@ -100,27 +97,25 @@
             border-left: 4px solid #ff3366;
             padding: 20px;
             border-radius: 0 10px 10px 0;
-            min-height: 90px;
+            min-height: 85px;
             transition: opacity 0.5s ease-in-out;
         }
         .testimonial-text {
             font-style: italic;
             color: #f8fafc;
-            margin: 0 0 10px 0;
-            font-size: 14px;
+            margin: 0 0 8px 0;
+            font-size: 13px;
         }
         .testimonial-author {
-            font-size: 12px;
+            font-size: 11px;
             color: #cbd5e1;
             font-weight: bold;
         }
         .forms-wrapper {
-            flex: 1;
-            width: 100%;
-            max-width: 500px;
             display: flex;
             flex-direction: column;
             gap: 20px;
+            width: 100%;
         }
         .form-container {
             background: rgba(15, 23, 42, 0.95);
@@ -129,20 +124,18 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ffffff;
             width: 100%;
-            box-sizing: border-box;
         }
         .form-container p {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .form-container input, .form-container select, .form-container textarea {
             width: 100%;
-            padding: 10px;
-            margin-top: 5px;
+            padding: 9px;
+            margin-top: 4px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 5px;
             color: white;
-            box-sizing: border-box;
         }
         .submit-btn {
             background: #ff3366;
@@ -150,11 +143,11 @@
             border: none;
             padding: 12px 20px;
             width: 100%;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 12px;
         }
         .submit-btn:hover {
             background: #e02e5b;
@@ -165,11 +158,11 @@
             border: 1.5px solid #ff3366;
             padding: 10px 20px;
             width: 100%;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 8px;
             transition: all 0.3s ease;
         }
         .login-btn:hover {
@@ -178,8 +171,8 @@
         }
         .footer-note {
             text-align: center;
-            margin-top: 15px;
-            font-size: 12px;
+            margin-top: 12px;
+            font-size: 11px;
             color: #94a3b8;
         }
         .footer-note a {
@@ -187,16 +180,11 @@
             text-decoration: none;
         }
 
-        @media (min-width: 992px) {
+        /* Responsive layout for smaller screens */
+        @media (max-width: 900px) {
             .hero-content-wrapper {
-                flex-direction: row;
-                gap: 60px;
-            }
-            .hero-left h1 {
-                font-size: 42px;
-            }
-            .form-container {
-                padding: 35px;
+                grid-template-columns: 1fr;
+                gap: 30px;
             }
         }
     </style>
@@ -205,6 +193,8 @@
     <div class="hero-background">
         <div class="overlay"></div>
         <div class="hero-content-wrapper">
+            
+            <!-- Left Side: Locked strictly to the top -->
             <div class="hero-left">
                 <div class="brand-logo">❤️ AURAMATCH</div>
                 <h1>Find Your Forever Connection Today</h1>
@@ -231,11 +221,11 @@
                 </div>
             </div>
 
+            <!-- Right Side: Forms -->
             <div class="forms-wrapper">
-                <!-- Registration Form Container -->
                 <div class="form-container">
-                    <h2>Start Your 14-Day Free Trial</h2>
-                    <p style="font-size: 13px; color: #cbd5e1;">No upfront charge. Card is only billed when a compatible match is delivered.</p>
+                    <h2 style="font-size: 20px; margin-top: 0; margin-bottom: 5px;">Start Your 14-Day Free Trial</h2>
+                    <p style="font-size: 12px; color: #cbd5e1;">No upfront charge. Card is only billed when a compatible match is delivered.</p>
                     
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
@@ -248,21 +238,21 @@
                     </div>
                 </div>
 
-                <!-- Returning User Quick Login Container -->
                 <div class="form-container" style="background: rgba(10, 15, 30, 0.95);">
-                    <h3 style="font-size: 18px; margin-top: 0; margin-bottom: 8px;">Already Registered?</h3>
-                    <p style="font-size: 12px; color: #cbd5e1; margin-bottom: 15px;">Log in instantly with your registered email address.</p>
+                    <h3 style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">Already Registered?</h3>
+                    <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px;">Log in instantly with your registered email address.</p>
                     
                     <form method="POST">
                         {% csrf_token %}
                         <div>
-                            <label for="login_email" style="font-size: 12px; color: #94a3b8;">Registered Email Address</label>
+                            <label for="login_email" style="font-size: 11px; color: #94a3b8;">Registered Email Address</label>
                             <input type="email" id="login_email" name="login_email" placeholder="Enter your email" required>
                         </div>
                         <button type="submit" name="login" class="login-btn">Log Into My Profile</button>
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 
