@@ -1,11 +1,13 @@
 import random
 from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
 
 
 class MatchProfile(models.Model):
     # Step 1: Initial Registration Fields
     full_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
+    password = models.CharField(max_length=128)  # Secure password field
     age = models.IntegerField()
     phone = models.CharField(max_length=30)
     gender = models.CharField(
@@ -28,7 +30,7 @@ class MatchProfile(models.Model):
         upload_to='profiles/', blank=True, null=True
     )
 
-    # Security IP Tracking (Item 4)
+    # Security IP Tracking
     registration_ip = models.GenericIPAddressField(blank=True, null=True)
     last_login_ip = models.GenericIPAddressField(blank=True, null=True)
 
@@ -36,10 +38,10 @@ class MatchProfile(models.Model):
     is_verified = models.BooleanField(default=False)
     verification_code = models.CharField(max_length=6, blank=True, null=True)
 
-    # Unique Match PIN for Item 6
+    # Unique Match PIN
     match_pin = models.CharField(max_length=6, unique=True, blank=True, null=True)
 
-    # Account Lock / Scam Detection Flag (Item 7)
+    # Account Lock / Scam Detection Flag
     is_locked = models.BooleanField(default=False)
     lock_reason = models.CharField(max_length=255, blank=True, null=True)
 
@@ -57,6 +59,12 @@ class MatchProfile(models.Model):
     status = models.CharField(max_length=50, default='Pending Interview')
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
+
     def generate_code(self):
         self.verification_code = str(random.randint(100000, 999999))
         self.save()
@@ -70,7 +78,7 @@ class MatchProfile(models.Model):
         return f'{self.full_name} ({self.email})'
 
 
-# Item 5: Customer Support Tickets
+# Customer Support Tickets
 class SupportTicket(models.Model):
     profile = models.ForeignKey(MatchProfile, on_delete=models.CASCADE, null=True, blank=True)
     sender_email = models.EmailField()
@@ -83,7 +91,7 @@ class SupportTicket(models.Model):
         return f"Ticket from {self.sender_email}: {self.subject}"
 
 
-# Item 6: Match Connection via PIN
+# Match Connection via PIN
 class MatchConnection(models.Model):
     user1 = models.ForeignKey(MatchProfile, related_name='connections_as_user1', on_delete=models.CASCADE)
     user2 = models.ForeignKey(MatchProfile, related_name='connections_as_user2', on_delete=models.CASCADE)
@@ -93,7 +101,7 @@ class MatchConnection(models.Model):
         return f"Connection: {self.user1.full_name} & {self.user2.full_name}"
 
 
-# Item 6 & 7: Chat Messages with Image Sharing & Money Scam Auto-Lock
+# Chat Messages with Image Sharing & Money Scam Auto-Lock
 class ChatMessage(models.Model):
     connection = models.ForeignKey(MatchConnection, on_delete=models.CASCADE)
     sender = models.ForeignKey(MatchProfile, on_delete=models.CASCADE)
@@ -102,13 +110,11 @@ class ChatMessage(models.Model):
     sent_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        # Item 7: Scam / Money Keyword Auto-Lock Detector
         if self.message_text:
             forbidden_words = ['money', 'send money', 'cash', 'wire', 'crypto', 'gift card', 'loan', 'pay me', 'dollars', 'naira', 'funds']
             text_lower = self.message_text.lower()
             for word in forbidden_words:
                 if word in text_lower:
-                    # Lock the sender's account instantly
                     sender_profile = self.sender
                     sender_profile.is_locked = True
                     sender_profile.lock_reason = f"Account locked automatically for violating community rules (Trigger word: '{word}')."

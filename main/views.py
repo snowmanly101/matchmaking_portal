@@ -40,9 +40,11 @@ def home_view(request):
 
         elif 'login' in request.POST:
             login_email = request.POST.get('login_email')
+            login_password = request.POST.get('login_password')
+            
             profile = MatchProfile.objects.filter(email=login_email).first()
             
-            if profile:
+            if profile and profile.check_password(login_password):
                 if profile.is_locked:
                     messages.error(request, f"Access Denied. {profile.lock_reason}")
                     return redirect('home')
@@ -61,41 +63,30 @@ def home_view(request):
                 else:
                     return redirect('questionnaire_step', step=1)
             else:
-                messages.error(request, 'No account found with this email address. Please register.')
+                messages.error(request, 'Invalid email or password. Please try again.')
                 return redirect('home')
 
         elif 'register' in request.POST:
             form = MatchProfileForm(request.POST, request.FILES)
-            if form.is_valid():
+            raw_password = request.POST.get('password')
+
+            if form.is_valid() and raw_password:
                 email = form.cleaned_data.get('email')
                 
                 existing_profile = MatchProfile.objects.filter(email=email).first()
                 if existing_profile:
-                    if existing_profile.is_locked:
-                        messages.error(request, f"Access Denied. {existing_profile.lock_reason}")
-                        return redirect('home')
-
-                    existing_profile.last_login_ip = get_client_ip(request)
-                    existing_profile.save()
-
-                    request.session['user_id'] = existing_profile.id
-                    request.session['pending_user_id'] = existing_profile.id
-                    messages.info(request, 'An account with this email already exists. Logging you in...')
-                    
-                    if not existing_profile.is_verified:
-                        return redirect('verify_email')
-                    elif existing_profile.status == 'Under Review - Pending Interview':
-                        return redirect('portal')
-                    else:
-                        return redirect('questionnaire_step', step=1)
+                    messages.error(request, 'An account with this email already exists. Please log in below.')
+                    return redirect('home')
                 
                 profile = form.save(commit=False)
+                profile.set_password(raw_password)
                 profile.registration_ip = get_client_ip(request)
                 profile.generate_pin()
                 profile.save()
                 
                 profile.generate_code()
                 
+                # Sent directly to email securely without showing code on screen
                 try:
                     send_mail(
                         subject='Your AuraMatch Verification Code',
@@ -110,6 +101,7 @@ def home_view(request):
                 request.session['pending_user_id'] = profile.id
                 return redirect('verify_email')
             else:
+                messages.error(request, 'Please complete all required fields and provide a password.')
                 return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
     else:
         form = MatchProfileForm()
@@ -256,6 +248,10 @@ def chat_room_view(request, connection_id):
         'connection': connection,
         'messages_list': messages_list
     })
+
+
+def terms_view(request):
+    return render(request, 'main/terms.html')
 
 
 def logout_view(request):
