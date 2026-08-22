@@ -86,7 +86,6 @@ def home_view(request):
                 
                 profile.generate_code()
                 
-                # Sent directly to email securely without showing code on screen
                 try:
                     send_mail(
                         subject='Your AuraMatch Verification Code',
@@ -130,6 +129,66 @@ def verify_email_view(request):
             messages.error(request, 'Invalid verification code. Please check your email inbox.')
 
     return render(request, 'main/verify_email.html', {'profile': profile})
+
+
+def forgot_password_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        profile = MatchProfile.objects.filter(email=email).first()
+        if profile:
+            reset_code = str(random.randint(100000, 999999))
+            profile.reset_password_code = reset_code
+            profile.save()
+            
+            request.session['reset_profile_id'] = profile.id
+            
+            try:
+                send_mail(
+                    subject='Password Reset Code - AuraMatch',
+                    message=f'Hello {profile.full_name},\n\nYour password reset code is: {reset_code}',
+                    from_email=None,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print(f"Email sending failed: {e}")
+                
+            messages.success(request, "A password reset code has been sent to your email.")
+            return redirect('reset_password')
+        else:
+            messages.error(request, "No account matches this email address.")
+            
+    return render(request, 'main/forgot_password.html')
+
+
+def reset_password_view(request):
+    profile_id = request.session.get('reset_profile_id')
+    if not profile_id:
+        return redirect('forgot_password')
+        
+    profile = get_object_or_404(MatchProfile, id=profile_id)
+
+    if request.method == 'POST':
+        entered_code = request.POST.get('code')
+        new_password = request.POST.get('new_password')
+        
+        if entered_code and entered_code == str(profile.reset_password_code):
+            if new_password:
+                profile.set_password(new_password)
+                profile.reset_password_code = ''
+                profile.save()
+                
+                if 'reset_profile_id' in request.session:
+                    del request.session['reset_profile_id']
+                    
+                messages.success(request, "Password successfully updated! You can now log in.")
+                return redirect('home')
+            else:
+                messages.error(request, "Please enter a valid new password.")
+        else:
+            messages.error(request, "Invalid or expired reset code.")
+            
+    return render(request, 'main/reset_password.html')
 
 
 def questionnaire_step_view(request, step):

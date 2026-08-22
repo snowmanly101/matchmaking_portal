@@ -38,6 +38,9 @@ class MatchProfile(models.Model):
     is_verified = models.BooleanField(default=False)
     verification_code = models.CharField(max_length=6, blank=True, null=True)
 
+    # Password Reset Fields
+    reset_password_code = models.CharField(max_length=6, blank=True, null=True)
+
     # Unique Match PIN
     match_pin = models.CharField(max_length=6, unique=True, blank=True, null=True)
 

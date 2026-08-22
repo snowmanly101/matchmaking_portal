@@ -225,11 +225,19 @@
                     <span class="testimonial-author" id="t-author">— Sarah & David, New York</span>
                 </div>
 
-                <!-- Login Form Container (Placed directly under testimonials as requested) -->
+                <!-- Login Form Container -->
                 <div class="form-container" style="background: rgba(15, 23, 42, 0.85); border-color: rgba(255, 51, 102, 0.3);">
                     <h3 style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">Already Registered?</h3>
                     <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px;">Log in instantly with your registered email and password.</p>
                     
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; padding: 8px; border-radius: 5px; margin-bottom: 10px; font-size: 12px; color: #fca5a5;">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
                     <form method="POST">
                         {% csrf_token %}
                         <div class="mb-2">
@@ -239,6 +247,9 @@
                         <div class="mb-2">
                             <label for="login_password" style="font-size: 11px; color: #94a3b8;">Password</label>
                             <input type="password" id="login_password" name="login_password" placeholder="Enter your password" required>
+                        </div>
+                        <div style="text-align: right; margin-bottom: 10px;">
+                            <a href="{% url 'forgot_password' %}" style="font-size: 11px; color: #ff3366; text-decoration: none;">Forgot Password?</a>
                         </div>
                         <button type="submit" name="login" class="login-btn">Log Into My Profile</button>
                     </form>
