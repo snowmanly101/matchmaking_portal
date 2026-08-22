@@ -14,7 +14,6 @@
         .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4); color: white; }
         .form-control { background-color: rgba(15, 23, 42, 0.95) !important; border: 1.5px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; border-radius: 10px; padding: 14px; text-align: center; font-size: 1.5rem; letter-spacing: 8px; }
         .form-control:focus { border-color: #f43f5e !important; box-shadow: 0 0 0 0.25rem rgba(244, 63, 94, 0.25) !important; }
-        .code-hint { background: #1e293b; border: 1px solid #f59e0b; color: #fef08a; border-radius: 10px; padding: 12px; font-size: 0.9rem; text-align: center; }
     </style>
 </head>
 <body>
@@ -22,7 +21,7 @@
     <div class="glass-card text-center">
         <h2 class="brand-logo mb-3 fs-2">AURAMATCH</h2>
         <h4 class="fw-bold mb-2 text-white">Verify Your Email</h4>
-        <p class="text-secondary small mb-4">We've sent a 6-digit verification code to <strong>{{ profile.email }}</strong>.</p>
+        <p class="text-secondary small mb-4">We've sent a secure 6-digit verification code to <strong>{{ profile.email }}</strong>. Please check your inbox or spam folder.</p>
 
         {% if messages %}
             {% for message in messages %}
@@ -31,11 +30,6 @@
                 </div>
             {% endfor %}
         {% endif %}
-
-        <!-- Helpful hint for local testing: displays the code right in the console/box if needed -->
-        <div class="code-hint mb-4">
-            🔑 <strong>Testing Note:</strong> Your code is: <span class="text-white fs-6 fw-bold">{{ profile.verification_code }}</span>
-        </div>
 
         <form method="POST">
             {% csrf_token %}

@@ -100,6 +100,7 @@
             border-radius: 0 10px 10px 0;
             min-height: 85px;
             transition: opacity 0.5s ease-in-out;
+            margin-bottom: 30px;
         }
         .testimonial-text {
             font-style: italic;
@@ -198,6 +199,7 @@
         <div class="overlay"></div>
         <div class="hero-content-wrapper">
             
+            <!-- Left Side: Brand, Info, Stats, Testimonials & Login Box -->
             <div class="hero-left">
                 <div class="brand-logo">❤️ AURAMATCH</div>
                 <h1>Find Your Forever Connection Today</h1>
@@ -222,10 +224,29 @@
                     <p class="testimonial-text" id="t-text">"AuraMatch completely changed my life. Within weeks, I met the love of my life who shares my exact core values. Highly recommended!"</p>
                     <span class="testimonial-author" id="t-author">— Sarah & David, New York</span>
                 </div>
+
+                <!-- Login Form Container (Placed directly under testimonials as requested) -->
+                <div class="form-container" style="background: rgba(15, 23, 42, 0.85); border-color: rgba(255, 51, 102, 0.3);">
+                    <h3 style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">Already Registered?</h3>
+                    <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px;">Log in instantly with your registered email and password.</p>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <label for="login_email" style="font-size: 11px; color: #94a3b8;">Email Address</label>
+                            <input type="email" id="login_email" name="login_email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="mb-2">
+                            <label for="login_password" style="font-size: 11px; color: #94a3b8;">Password</label>
+                            <input type="password" id="login_password" name="login_password" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" name="login" class="login-btn">Log Into My Profile</button>
+                    </form>
+                </div>
             </div>
 
+            <!-- Right Side: Registration Form -->
             <div class="forms-wrapper">
-                <!-- Registration Form Container -->
                 <div class="form-container">
                     <h2 style="font-size: 20px; margin-top: 0; margin-bottom: 5px;">Start Your 14-Day Free Trial</h2>
                     <p style="font-size: 12px; color: #cbd5e1;">No upfront charge. Card is only billed when a compatible match is delivered.</p>
@@ -249,27 +270,12 @@
                         <a href="/terms/" target="_blank">Terms & Conditions & Privacy Policy</a>
                     </div>
                 </div>
-
-                <!-- Login Form Container -->
-                <div class="form-container" style="background: rgba(10, 15, 30, 0.95);">
-                    <h3 style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">Already Registered?</h3>
-                    <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px;">Log in instantly with your registered email address.</p>
-                    
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div>
-                            <label for="login_email" style="font-size: 11px; color: #94a3b8;">Registered Email Address</label>
-                            <input type="email" id="login_email" name="login_email" placeholder="Enter your email" required>
-                        </div>
-                        <button type="submit" name="login" class="login-btn">Log Into My Profile</button>
-                    </form>
-                </div>
             </div>
 
         </div>
     </div>
 
-    <!-- Item 5: Customer Support Floating Widget -->
+    <!-- Customer Support Floating Widget -->
     <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
         <button class="btn btn-danger rounded-circle shadow-lg p-3 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#supportModal" title="Customer Support" style="width: 60px; height: 60px; font-size: 24px;">
             💬
