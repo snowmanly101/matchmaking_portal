@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chat | AuraMatch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0c080f; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        .brand-logo { font-weight: 700; letter-spacing: 2px; background: linear-gradient(45deg, #f43f5e, #fb7185); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Luxurious Romantic Love Theme Background with Soft Glows */
+        .glass-header { background: rgba(20, 12, 22, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(244, 63, 94, 0.2); }
+        .chat-container { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 25px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            background: linear-gradient(135deg, rgba(15, 8, 18, 0.95) 0%, rgba(35, 12, 28, 0.9) 50%, rgba(12, 8, 15, 0.98) 100%), 
+                        radial-gradient(circle at 50% 50%, rgba(244, 63, 94, 0.08) 0%, transparent 70%);
+            background-attachment: fixed;
+            scroll-behavior: smooth;
+        }
+        
+        /* Romantic Message Bubbles */
+        .message-bubble { max-width: 65%; padding: 12px 18px; border-radius: 18px; position: relative; word-wrap: break-word; box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+        .message-incoming { background: rgba(36, 20, 32, 0.85); border: 1px solid rgba(244, 63, 94, 0.2); align-self: flex-start; border-bottom-left-radius: 4px; color: #f1f5f9; }
+        .message-outgoing { background: linear-gradient(135deg, #e11d48, #9f1239); border: 1px solid rgba(255, 182, 193, 0.2); align-self: flex-end; border-bottom-right-radius: 4px; color: #ffffff; }
+        
+        .chat-footer { background: rgba(20, 12, 22, 0.95); border-top: 1px solid rgba(244, 63, 94, 0.2); padding: 15px 20px; position: relative; backdrop-filter: blur(10px); }
+        .chat-input-bar { background: rgba(30, 15, 26, 0.9); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 50px; display: flex; align-items: center; padding: 6px 18px; gap: 12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        .chat-input-bar input[type="text"] { background: transparent; border: none; color: white; outline: none; flex: 1; font-size: 0.95rem; }
+        .chat-input-bar input::placeholder { color: #886a7b; }
+        
+        /* Hidden file input styled as an icon */
+        .file-upload-btn { cursor: pointer; color: #cbd5e1; transition: color 0.2s; font-size: 1.3rem; display: flex; align-items: center; margin-bottom: 0; }
+        .file-upload-btn:hover { color: #fb7185; }
+        
+        /* Native Emoji Picker Popup Panel */
+        #emoji-picker-container { 
+            position: absolute; 
+            bottom: 85px; 
+            left: 20px; 
+            z-index: 1000; 
+            display: none; 
+            background: #180e1d; 
+            border: 1px solid rgba(244,63,94,0.4);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7); 
+            border-radius: 16px; 
+            padding: 12px;
+            width: 280px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+        .emoji-item {
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .emoji-item:hover {
+            background: rgba(244, 63, 94, 0.3);
+        }
+        
+        .btn-send { background: linear-gradient(135deg, #f43f5e, #be123c); border: none; color: white; border-radius: 50px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); }
+        .btn-send:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(244, 63, 94, 0.6); }
+        
+        .btn-profile { background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.4); color: #fda4af; border-radius: 50px; padding: 6px 20px; font-weight: 600; transition: all 0.3s; }
+        .btn-profile:hover { background: #f43f5e; color: white; box-shadow: 0 5px 15px rgba(244, 63, 94, 0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="glass-header px-4 py-3 d-flex justify-content-between align-items-center shadow-sm">
+        <div>
+            <h5 class="mb-0 text-white fw-bold">💖 Chatting with: <span style="color: #fb7185;">{{ partner.full_name }}</span></h5>
+            <small class="text-rose fw-semibold" style="color: #fda4af; letter-spacing: 0.5px;">🔒 Secure Connection &bull; Anti Scam Active &bull; End to End Encrypted</small>
+        </div>
+        <a href="{% url 'portal' %}" class="btn btn-profile btn-sm text-decoration-none">My Profile</a>
+    </div>
+
+    <!-- Chat Messages Feed -->
+    <div class="chat-container" id="chatFeed">
+        {% for msg in messages_list %}
+            <div class="message-bubble {% if msg.sender == profile %}message-outgoing{% else %}message-incoming{% endif %}">
+                <div class="small fw-bold mb-1 opacity-75" style="font-size: 0.75rem;">
+                    {% if msg.sender == profile %}You 💕{% else %}{{ partner.full_name }}{% endif %}
+                </div>
+                
+                {% if msg.message_text %}
+                    <p class="mb-1" style="font-size: 0.95rem; line-height: 1.4;">{{ msg.message_text }}</p>
+                {% endif %}
+
+                {% if msg.image %}
+                    <div class="my-2">
+                        <img src="{{ msg.image.url }}" alt="Shared Image" class="rounded img-fluid" style="max-height: 250px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2);">
+                    </div>
+                {% endif %}
+
+                <div class="text-end opacity-50" style="font-size: 0.65rem;">
+                    {{ msg.sent_at|time:"H:i" }}
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center text-muted my-auto">
+                <p class="mb-1 fs-5 text-light">✨ Your love story begins here.</p>
+                <small style="color: #cbd5e1;">Send a sweet message to start chatting with {{ partner.full_name }}!</small>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Native Emoji Picker Popup Panel -->
+    <div id="emoji-picker-container">
+        <div class="emoji-grid" id="emojiGrid">
+            <span class="emoji-item">❤️</span><span class="emoji-item">💖</span><span class="emoji-item">💕</span><span class="emoji-item">😍</span><span class="emoji-item">🥰</span><span class="emoji-item">😘</span>
+            <span class="emoji-item">😊</span><span class="emoji-item">✨</span><span class="emoji-item">🌹</span><span class="emoji-item">💋</span><span class="emoji-item">💍</span><span class="emoji-item">🔥</span>
+            <span class="emoji-item">🎉</span><span class="emoji-item">🙌</span><span class="emoji-item">👍</span><span class="emoji-item">🙏</span><span class="emoji-item">😎</span><span class="emoji-item">😉</span>
+            <span class="emoji-item">😂</span><span class="emoji-item">🥹</span><span class="emoji-item">🫶</span><span class="emoji-item">💗</span><span class="emoji-item">💓</span><span class="emoji-item">💘</span>
+            <span class="emoji-item">🌟</span><span class="emoji-item">💫</span><span class="emoji-item">🌸</span><span class="emoji-item">🌷</span><span class="emoji-item">🍫</span><span class="emoji-item">🥂</span>
+        </div>
+    </div>
+
+    <!-- WhatsApp-Style Unified Input Box Footer -->
+    <div class="chat-footer">
+        <form method="POST" enctype="multipart/form-data" id="chatForm">
+            {% csrf_token %}
+            <div class="chat-input-bar">
+                <!-- Emoji Button Toggle -->
+                <button type="button" id="emojiBtn" class="btn btn-link text-light p-0 border-0 text-decoration-none" style="font-size: 1.3rem;" title="Insert Emoji">😊</button>
+                
+                <!-- Attachment Button -->
+                <label class="file-upload-btn" title="Attach Image">
+                    📎
+                    <input type="file" name="chat_image" id="chatImageInput" accept="image/*" class="d-none">
+                </label>
+
+                <!-- Text Input -->
+                <input type="text" name="message_text" id="messageInput" placeholder="Type a romantic message..." autocomplete="off">
+
+                <!-- Send Button -->
+                <button type="submit" class="btn-send" title="Send Message">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+                        <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.633 10.03l-.505-.505L13.83 2.576ZM4.8 11.5l3.2-3.2 4.8 4.8-8-1.6Z"/>
+                    </svg>
+                </button>
+            </div>
+            <!-- File selected notification text -->
+            <div id="fileNameDisplay" class="text-rose small mt-1 px-2 d-none" style="color: #fda4af;"></div>
+        </form>
+    </div>
+
+    <script>
+        const chatFeed = document.getElementById('chatFeed');
+        
+        function forceScrollBottom() {
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+        }
+
+        // Scroll on page load and window resize
+        window.addEventListener('load', forceScrollBottom);
+        
+        // Force scroll immediately and re-verify after short delays to catch image/DOM rendering
+        forceScrollBottom();
+        setTimeout(forceScrollBottom, 50);
+        setTimeout(forceScrollBottom, 150);
+
+        // Handle Form Submission Scroll Lock
+        document.getElementById('chatForm').addEventListener('submit', () => {
+            forceScrollBottom();
+            setTimeout(forceScrollBottom, 100);
+            setTimeout(forceScrollBottom, 300);
+        });
+
+        // Emoji Picker Logic
+        const emojiBtn = document.getElementById('emojiBtn');
+        const emojiContainer = document.getElementById('emoji-picker-container');
+        const messageInput = document.getElementById('messageInput');
+        const emojiGrid = document.getElementById('emojiGrid');
+
+        emojiBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiContainer.style.display = emojiContainer.style.display === 'block' ? 'none' : 'block';
+        });
+
+        emojiGrid.addEventListener('click', (e) => {
+            if (e.target.classList.contains('emoji-item')) {
+                messageInput.value += e.target.textContent;
+                messageInput.focus();
+                emojiContainer.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!emojiContainer.contains(e.target) && e.target !== emojiBtn) {
+                emojiContainer.style.display = 'none';
+            }
+        });
+
+        // Show file name when an image is attached
+        const imageInput = document.getElementById('chatImageInput');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                fileNameDisplay.textContent = 📷 Attached: ${this.files[0].name};
+                fileNameDisplay.classList.remove('d-none');
+            } else {
+                fileNameDisplay.classList.add('d-none');
+            }
+        });
+    </script>
+</body>
+</html>
