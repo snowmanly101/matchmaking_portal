@@ -59,6 +59,8 @@ def home_view(request):
                 if not profile.is_verified:
                     request.session['pending_user_id'] = profile.id
                     return redirect('verify_email')
+                elif not profile.is_subscribed:
+                    return redirect('card_payment')
                 elif profile.status == 'Under Review - Pending Interview':
                     return redirect('portal')
                 else:
@@ -125,11 +127,46 @@ def verify_email_view(request):
             request.session['user_id'] = profile.id
             if 'pending_user_id' in request.session:
                 del request.session['pending_user_id']
-            return redirect('questionnaire_step', step=1)
+            
+            # Redirect to card payment step right after verification
+            return redirect('card_payment')
         else:
             messages.error(request, 'Invalid verification code. Please check your email inbox.')
 
     return render(request, 'main/verify_email.html', {'profile': profile})
+
+
+def card_payment_view(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('home')
+
+    profile = get_object_or_404(MatchProfile, id=user_id)
+
+    # Set your monthly active promo code here (you can change this whenever you want!)
+    CURRENT_MONTHLY_PROMO = "CELOOH2026"
+
+    if request.method == 'POST':
+        promo_code = request.POST.get('promo_code', '').strip()
+        
+        if promo_code and promo_code == CURRENT_MONTHLY_PROMO:
+            profile.is_subscribed = True
+            profile.used_promo_code = promo_code
+            profile.save()
+            messages.success(request, "Promo code applied successfully! Welcome aboard.")
+            return redirect('questionnaire_step', step=1)
+        else:
+            # Simulate processing card details for normal paying users
+            card_number = request.POST.get('card_number')
+            if card_number:
+                profile.is_subscribed = True
+                profile.save()
+                messages.success(request, "Payment successful! Let's set up your profile.")
+                return redirect('questionnaire_step', step=1)
+            else:
+                messages.error(request, "Invalid promo code or card details. Please try again.")
+
+    return render(request, 'main/card_payment.html', {'profile': profile})
 
 
 def forgot_password_view(request):
@@ -200,6 +237,8 @@ def questionnaire_step_view(request, step):
     profile = get_object_or_404(MatchProfile, id=user_id)
     if profile.is_locked:
         return redirect('logout')
+    if not profile.is_subscribed:
+        return redirect('card_payment')
 
     form_mapping = {
         1: (Question1Form, 'main/questionnaire_step.html'),
@@ -243,6 +282,8 @@ def portal_view(request):
     profile = get_object_or_404(MatchProfile, id=user_id)
     if profile.is_locked:
         return redirect('logout')
+    if not profile.is_subscribed:
+        return redirect('card_payment')
 
     if request.method == 'POST':
         partner_pin = request.POST.get('partner_pin')

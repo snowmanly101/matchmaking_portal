@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription & Payment - AuraMatch</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen">
+    <div class="bg-slate-800 p-8 rounded-xl shadow-xl max-w-md w-full border border-slate-700">
+        <h2 class="text-2xl font-bold mb-2 text-center text-rose-500">Complete Your Access</h2>
+        <p class="text-slate-400 text-sm mb-6 text-center">Enter your card details below to activate your account or input your monthly promo code.</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-3 rounded bg-rose-500/20 border border-rose-500 text-rose-300 text-sm text-center">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs uppercase text-slate-400 mb-1">Card Number</label>
+                <input type="text" name="card_number" placeholder="1234 5678 9012 3456" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500">
+            </div>
+
+            <div class="flex gap-4">
+                <div class="w-1/2">
+                    <label class="block text-xs uppercase text-slate-400 mb-1">Expiry Date</label>
+                    <input type="text" name="expiry" placeholder="MM/YY" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500">
+                </div>
+                <div class="w-1/2">
+                    <label class="block text-xs uppercase text-slate-400 mb-1">CVV</label>
+                    <input type="password" name="cvv" placeholder="123" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500">
+                </div>
+            </div>
+
+            <div class="border-t border-slate-700 pt-4 mt-4">
+                <label class="block text-xs uppercase text-slate-400 mb-1">Have a Monthly Promo Code?</label>
+                <div class="flex gap-2">
+                    <input type="text" name="promo_code" placeholder="Enter code here" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500 uppercase">
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Entering a valid promo code lets you skip payment entirely.</p>
+            </div>
+
+            <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded transition mt-4">
+                Proceed & Continue
+            </button>
+        </form>
+    </div>
+</body>
+</html>
