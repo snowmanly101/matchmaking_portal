@@ -34,9 +34,11 @@ class MatchProfile(models.Model):
     registration_ip = models.GenericIPAddressField(blank=True, null=True)
     last_login_ip = models.GenericIPAddressField(blank=True, null=True)
 
-    # Email Verification Fields
+    # Email Verification & Subscription Fields
     is_verified = models.BooleanField(default=False)
     verification_code = models.CharField(max_length=6, blank=True, null=True)
+    is_subscribed = models.BooleanField(default=False)
+    used_promo_code = models.CharField(max_length=50, blank=True, null=True)
 
     # Password Reset Fields
     reset_password_code = models.CharField(max_length=6, blank=True, null=True)
@@ -77,7 +79,7 @@ class MatchProfile(models.Model):
             self.match_pin = str(random.randint(10000, 99999))
             self.save()
 
-    def _str_(self):
+    def __str__(self):
         return f'{self.full_name} ({self.email})'
 
 
@@ -90,7 +92,7 @@ class SupportTicket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_resolved = models.BooleanField(default=False)
 
-    def _str_(self):
+    def __str__(self):
         return f"Ticket from {self.sender_email}: {self.subject}"
 
 
@@ -100,7 +102,7 @@ class MatchConnection(models.Model):
     user2 = models.ForeignKey(MatchProfile, related_name='connections_as_user2', on_delete=models.CASCADE)
     connected_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"Connection: {self.user1.full_name} & {self.user2.full_name}"
 
 
@@ -126,5 +128,5 @@ class ChatMessage(models.Model):
                     break
         super().save(*args, **kwargs)
 
-    def _str_(self):
+    def __str__(self):
         return f"Message from {self.sender.full_name}"
