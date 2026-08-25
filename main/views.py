@@ -82,31 +82,38 @@ def home_view(request):
                     messages.error(request, 'An account with this email already exists. Please log in below.')
                     return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
                 
-                profile = form.save(commit=False)
-                profile.set_password(raw_password)
-                profile.registration_ip = get_client_ip(request)
-                profile.generate_pin()
-                profile.save()
-                
-                profile.generate_code()
-                
-                # Safe email execution so server never crashes on connection failure
                 try:
-                    send_mail(
-                        subject='Your AuraMatch Verification Code',
-                        message=f'Hello {profile.full_name},\n\nYour verification code is: {profile.verification_code}',
-                        from_email=None,
-                        recipient_list=[profile.email],
-                        fail_silently=True,
-                    )
-                except Exception as e:
-                    print(f"Email sending bypassed safely: {e}")
+                    profile = form.save(commit=False)
+                    profile.set_password(raw_password)
+                    profile.registration_ip = get_client_ip(request)
+                    profile.generate_pin()
+                    profile.save()
+                    
+                    profile.generate_code()
+                    
+                    # Safe email execution
+                    try:
+                        send_mail(
+                            subject='Your AuraMatch Verification Code',
+                            message=f'Hello {profile.full_name},\n\nYour verification code is: {profile.verification_code}',
+                            from_email=None,
+                            recipient_list=[profile.email],
+                            fail_silently=True,
+                        )
+                    except Exception as email_err:
+                        print(f"Email sending bypassed safely: {email_err}")
 
-                request.session['pending_user_id'] = profile.id
-                return redirect('verify_email')
+                    request.session['pending_user_id'] = profile.id
+                    return redirect('verify_email')
+                except Exception as db_err:
+                    messages.error(request, f"An error occurred during registration: {str(db_err)}")
             else:
-                messages.error(request, 'Please complete all required fields and provide a password.')
-                return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
+                error_msg = "Please correct the errors below."
+                if form.errors:
+                    for field, errors in form.errors.items():
+                        error_msg = f"{field}: {errors[0]}"
+                        break
+                messages.error(request, error_msg)
         
     return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
 
@@ -176,7 +183,6 @@ def forgot_password_view(request):
             
             request.session['reset_profile_id'] = profile.id
             
-            # Safe reset email execution
             try:
                 send_mail(
                     subject='Password Reset Code - AuraMatch',
