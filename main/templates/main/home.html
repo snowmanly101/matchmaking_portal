@@ -238,7 +238,7 @@
                         {% endfor %}
                     {% endif %}
 
-                    <form method="POST">
+                    <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="mb-2">
                             <label for="login_email" style="font-size: 11px; color: #94a3b8;">Email Address</label>
