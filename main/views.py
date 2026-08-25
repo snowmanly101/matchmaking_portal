@@ -30,6 +30,7 @@ def get_client_ip(request):
 
 def home_view(request):
     support_form = SupportTicketForm()
+    form = MatchProfileForm()
 
     if request.method == 'POST':
         if 'support_submit' in request.POST:
@@ -79,7 +80,7 @@ def home_view(request):
                 existing_profile = MatchProfile.objects.filter(email=email).first()
                 if existing_profile:
                     messages.error(request, 'An account with this email already exists. Please log in below.')
-                    return redirect('home')
+                    return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
                 
                 profile = form.save(commit=False)
                 profile.set_password(raw_password)
@@ -106,8 +107,6 @@ def home_view(request):
             else:
                 messages.error(request, 'Please complete all required fields and provide a password.')
                 return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
-    else:
-        form = MatchProfileForm()
         
     return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
 
