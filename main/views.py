@@ -89,16 +89,17 @@ def home_view(request):
                 
                 profile.generate_code()
                 
+                # Safe email execution so server never crashes on connection failure
                 try:
                     send_mail(
                         subject='Your AuraMatch Verification Code',
                         message=f'Hello {profile.full_name},\n\nYour verification code is: {profile.verification_code}',
                         from_email=None,
                         recipient_list=[profile.email],
-                        fail_silently=False,
+                        fail_silently=True,
                     )
                 except Exception as e:
-                    print(f"Email sending failed: {e}")
+                    print(f"Email sending bypassed safely: {e}")
 
                 request.session['pending_user_id'] = profile.id
                 return redirect('verify_email')
@@ -128,7 +129,6 @@ def verify_email_view(request):
             if 'pending_user_id' in request.session:
                 del request.session['pending_user_id']
             
-            # Redirect to card payment step right after verification
             return redirect('card_payment')
         else:
             messages.error(request, 'Invalid verification code. Please check your email inbox.')
@@ -142,8 +142,6 @@ def card_payment_view(request):
         return redirect('home')
 
     profile = get_object_or_404(MatchProfile, id=user_id)
-
-    # Set your monthly active promo code here (you can change this whenever you want!)
     CURRENT_MONTHLY_PROMO = "CELOOH2026"
 
     if request.method == 'POST':
@@ -156,7 +154,6 @@ def card_payment_view(request):
             messages.success(request, "Promo code applied successfully! Welcome aboard.")
             return redirect('questionnaire_step', step=1)
         else:
-            # Simulate processing card details for normal paying users
             card_number = request.POST.get('card_number')
             if card_number:
                 profile.is_subscribed = True
@@ -180,16 +177,17 @@ def forgot_password_view(request):
             
             request.session['reset_profile_id'] = profile.id
             
+            # Safe reset email execution
             try:
                 send_mail(
                     subject='Password Reset Code - AuraMatch',
                     message=f'Hello {profile.full_name},\n\nYour password reset code is: {reset_code}',
                     from_email=None,
                     recipient_list=[email],
-                    fail_silently=False,
+                    fail_silently=True,
                 )
             except Exception as e:
-                print(f"Email sending failed: {e}")
+                print(f"Password reset email bypassed safely: {e}")
                 
             messages.success(request, "A password reset code has been sent to your email.")
             return redirect('reset_password')
