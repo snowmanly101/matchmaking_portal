@@ -274,6 +274,12 @@
 
                         {{ form.as_p }}
                         
+                        <!-- Explicit Password Field for Registration -->
+                        <div style="margin-bottom: 15px;">
+                            <label for="id_password" style="font-size: 13px; color: #cbd5e1; display: block; margin-bottom: 4px;">Password:</label>
+                            <input type="password" id="id_password" name="password" placeholder="Create a secure password" required style="width: 100%; padding: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; color: white;">
+                        </div>
+                        
                         <button type="submit" name="register" class="submit-btn">Start Free Trial & Register</button>
                     </form>
 
