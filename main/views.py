@@ -1,3 +1,4 @@
+import socket
 import random
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -91,14 +92,15 @@ def home_view(request):
                     
                     profile.generate_code()
                     
-                    # Safe email execution
+                    # Bulletproof Safe email execution with timeout protection
                     try:
+                        socket.setdefaulttimeout(10)
                         send_mail(
                             subject='Your AuraMatch Verification Code',
                             message=f'Hello {profile.full_name},\n\nYour verification code is: {profile.verification_code}',
                             from_email=None,
                             recipient_list=[profile.email],
-                            fail_silently=True,
+                            fail_silently=False,
                         )
                     except Exception as email_err:
                         print(f"Email sending bypassed safely: {email_err}")
@@ -165,8 +167,8 @@ def card_payment_view(request):
             else:
                 messages.error(request, "Invalid promo code. Please try again.")
         
-        # Otherwise, check if they are paying with a card
-        elif card_number:
+        # Otherwise, check if they are paying with a card (ignoring default placeholder)
+        elif card_number and card_number != "1234 5678 9012 3456":
             profile.is_subscribed = True
             profile.save()
             messages.success(request, "Payment successful! Let's set up your profile.")
@@ -189,17 +191,21 @@ def forgot_password_view(request):
             request.session['reset_profile_id'] = profile.id
             
             try:
+                # Bulletproof timeout protection so it never freezes
+                socket.setdefaulttimeout(10)
                 send_mail(
                     subject='Password Reset Code - AuraMatch',
                     message=f'Hello {profile.full_name},\n\nYour password reset code is: {reset_code}',
                     from_email=None,
                     recipient_list=[email],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
+                messages.success(request, "A password reset code has been sent to your email.")
+            except socket.timeout:
+                messages.error(request, "Connection to email server timed out. Please try again.")
             except Exception as e:
-                print(f"Password reset email bypassed safely: {e}")
+                messages.error(request, f"Could not send email. Please check configuration.")
                 
-            messages.success(request, "A password reset code has been sent to your email.")
             return redirect('reset_password')
         else:
             messages.error(request, "No account matches this email address.")
