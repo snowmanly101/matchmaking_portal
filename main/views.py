@@ -148,26 +148,31 @@ def card_payment_view(request):
         return redirect('home')
 
     profile = get_object_or_404(MatchProfile, id=user_id)
-    CURRENT_MONTHLY_PROMO = "CELOOH2026"
+    CURRENT_MONTHLY_PROMO = "CFEOH2026"
 
     if request.method == 'POST':
         promo_code = request.POST.get('promo_code', '').strip()
+        card_number = request.POST.get('card_number', '').strip()
         
-        if promo_code and promo_code == CURRENT_MONTHLY_PROMO:
-            profile.is_subscribed = True
-            profile.used_promo_code = promo_code
-            profile.save()
-            messages.success(request, "Promo code applied successfully! Welcome aboard.")
-            return redirect('questionnaire_step', step=1)
-        else:
-            card_number = request.POST.get('card_number')
-            if card_number:
+        # Check if the user entered the promo code
+        if promo_code:
+            if promo_code == CURRENT_MONTHLY_PROMO:
                 profile.is_subscribed = True
+                profile.used_promo_code = promo_code
                 profile.save()
-                messages.success(request, "Payment successful! Let's set up your profile.")
+                messages.success(request, "Promo code applied successfully! Welcome aboard.")
                 return redirect('questionnaire_step', step=1)
             else:
-                messages.error(request, "Invalid promo code or card details. Please try again.")
+                messages.error(request, "Invalid promo code. Please try again.")
+        
+        # Otherwise, check if they are paying with a card
+        elif card_number:
+            profile.is_subscribed = True
+            profile.save()
+            messages.success(request, "Payment successful! Let's set up your profile.")
+            return redirect('questionnaire_step', step=1)
+        else:
+            messages.error(request, "Please enter either a valid promo code or your card details.")
 
     return render(request, 'main/card_payment.html', {'profile': profile})
 
