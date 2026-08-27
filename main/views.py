@@ -170,14 +170,13 @@ def card_payment_view(request):
                 return redirect('questionnaire_step', step=1)
             else:
                 messages.error(request, "Invalid promo code. Please try again.")
-        
-        elif card_number and card_number != "1234 5678 9012 3456":
+        elif card_number:
             profile.is_subscribed = True
             profile.save()
-            messages.success(request, "Payment successful! Let's set up your profile.")
+            messages.success(request, "Card verified and subscription active!")
             return redirect('questionnaire_step', step=1)
         else:
-            messages.error(request, "Please enter either a valid promo code or your card details.")
+            messages.error(request, "Please enter a valid promo code or card details.")
 
     return render(request, 'main/card_payment.html', {'profile': profile})
 

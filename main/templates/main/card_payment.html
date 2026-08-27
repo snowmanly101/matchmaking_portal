@@ -2,53 +2,101 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Subscription & Payment - AuraMatch</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Complete Access | AuraMatch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0b1120; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .glass-card { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); width: 100%; max-width: 480px; padding: 40px; }
+        .btn-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); border: none; color: white; font-weight: 600; padding: 12px 24px; border-radius: 50px; width: 100%; transition: all 0.3s ease; }
+        .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4); color: white; }
+        .form-control { background-color: rgba(15, 23, 42, 0.95) !important; border: 1.5px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; border-radius: 10px; padding: 14px; }
+        .form-control:focus { border-color: #f43f5e !important; box-shadow: 0 0 0 0.25rem rgba(244, 63, 94, 0.25) !important; }
+        .card-badge { font-size: 0.8rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
+        .badge-visa { background-color: #1a1f71; color: #60a5fa; border: 1px solid #3b82f6; }
+        .badge-mastercard { background-color: #eb001b; color: #fff; }
+        .badge-unknown { background-color: #334155; color: #94a3b8; }
+    </style>
 </head>
-<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen">
-    <div class="bg-slate-800 p-8 rounded-xl shadow-xl max-w-md w-full border border-slate-700">
-        <h2 class="text-2xl font-bold mb-2 text-center text-rose-500">Complete Your Access</h2>
-        <p class="text-slate-400 text-sm mb-6 text-center">Enter your card details below to activate your account or input your monthly promo code.</p>
+<body>
+
+    <div class="glass-card">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-white mb-2">Complete Your Access</h3>
+            <p class="text-secondary small">Enter your card details below to activate your account or input your monthly promo code.</p>
+        </div>
 
         {% if messages %}
             {% for message in messages %}
-                <div class="mb-4 p-3 rounded bg-rose-500/20 border border-rose-500 text-rose-300 text-sm text-center">
+                <div class="alert alert-danger bg-danger bg-opacity-20 border border-danger text-white small mb-3 text-start" role="alert">
                     {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
 
-        <form method="POST" class="space-y-4">
-            {% csrf_token %}
-            <div>
-                <label class="block text-xs uppercase text-slate-400 mb-1">Card Number</label>
-                <input type="text" name="card_number" placeholder="1234 5678 9012 3456" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500">
-            </div>
-
-            <div class="flex gap-4">
-                <div class="w-1/2">
-                    <label class="block text-xs uppercase text-slate-400 mb-1">Expiry Date</label>
-                    <input type="text" name="expiry" placeholder="MM/YY" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500">
-                </div>
-                <div class="w-1/2">
-                    <label class="block text-xs uppercase text-slate-400 mb-1">CVV</label>
-                    <input type="password" name="cvv" placeholder="123" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500">
+        <form method="POST">
+            {% csrf_token %>
+            
+            <div class="mb-3">
+                <label class="form-label text-secondary small">CARD NUMBER</label>
+                <input type="text" id="cardNumber" name="card_number" class="form-control" placeholder="1234 5678 9012 3456" value="1234 5678 9012 3456" required autocomplete="off">
+                <div id="cardTypeIndicator">
+                    <span class="card-badge badge-unknown">Detecting Card Type...</span>
                 </div>
             </div>
 
-            <div class="border-t border-slate-700 pt-4 mt-4">
-                <label class="block text-xs uppercase text-slate-400 mb-1">Have a Monthly Promo Code?</label>
-                <div class="flex gap-2">
-                    <input type="text" name="promo_code" placeholder="Enter code here" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500 uppercase">
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label text-secondary small">EXPIRY DATE</label>
+                    <input type="text" name="expiry" class="form-control" placeholder="MM/YY" required>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">Entering a valid promo code lets you skip payment entirely.</p>
+                <div class="col-6">
+                    <label class="form-label text-secondary small">CVV</label>
+                    <input type="password" name="cvv" class="form-control" placeholder="123" maxlength="4" required>
+                </div>
             </div>
 
-            <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded transition mt-4">
-                Proceed & Continue
-            </button>
+            <div class="mb-4">
+                <label class="form-label text-secondary small">HAVE A MONTHLY PROMO CODE?</label>
+                <input type="text" name="promo_code" class="form-control" placeholder="ENTER CODE HERE">
+                <div class="form-text text-secondary" style="font-size: 0.75rem;">Entering a valid promo code lets you skip payment entirely.</div>
+            </div>
+
+            <button type="submit" class="btn btn-rose py-3">Proceed & Continue</button>
         </form>
     </div>
+
+    <script>
+        const cardInput = document.getElementById('cardNumber');
+        const indicator = document.getElementById('cardTypeIndicator');
+
+        function detectCardType(number) {
+            // Remove spaces
+            const cleaned = number.replace(/\s+/g, '');
+            
+            // Visa starts with 4
+            if (/^4/.test(cleaned)) {
+                return '<span class="card-badge badge-visa">VISA CARD DETECTED</span>';
+            }
+            // Mastercard starts with 51-55 or 2221-2720
+            else if (/^5[1-5]/.test(cleaned) || /^2[2-7]/.test(cleaned)) {
+                return '<span class="card-badge badge-mastercard">MASTERCARD DETECTED</span>';
+            }
+            else if (cleaned.length === 0) {
+                return '<span class="card-badge badge-unknown">Enter card number</span>';
+            }
+            else {
+                return '<span class="card-badge badge-unknown">Card Supported</span>';
+            }
+        }
+
+        cardInput.addEventListener('input', (e) => {
+            indicator.innerHTML = detectCardType(e.target.value);
+        });
+
+        // Run on load in case prefilled
+        indicator.innerHTML = detectCardType(cardInput.value);
+    </script>
 </body>
 </html>
