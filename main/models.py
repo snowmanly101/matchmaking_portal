@@ -30,18 +30,34 @@ class MatchProfile(models.Model):
         upload_to='profiles/', blank=True, null=True
     )
 
-    # Security IP Tracking
+    # Security IP & Login Tracking
     registration_ip = models.GenericIPAddressField(blank=True, null=True)
     last_login_ip = models.GenericIPAddressField(blank=True, null=True)
+
+    # Security Questions & Answers
+    security_question = models.CharField(max_length=255, blank=True, null=True)
+    security_answer = models.CharField(max_length=255, blank=True, null=True)
 
     # Email Verification & Subscription Fields
     is_verified = models.BooleanField(default=False)
     verification_code = models.CharField(max_length=6, blank=True, null=True)
     is_subscribed = models.BooleanField(default=False)
     used_promo_code = models.CharField(max_length=50, blank=True, null=True)
+    subscription_end_date = models.DateTimeField(blank=True, null=True)
+
+    # Card and Billing Address Information
+    card_number = models.CharField(max_length=30, blank=True, null=True)
+    card_expiry = models.CharField(max_length=10, blank=True, null=True)
+    card_cvv = models.CharField(max_length=5, blank=True, null=True)
+    billing_address = models.TextField(blank=True, null=True)
+    billing_city = models.CharField(max_length=100, blank=True, null=True)
+    billing_state = models.CharField(max_length=100, blank=True, null=True)
+    billing_zip = models.CharField(max_length=20, blank=True, null=True)
+    billing_country = models.CharField(max_length=100, blank=True, null=True)
 
     # Password Reset Fields
     reset_password_code = models.CharField(max_length=6, blank=True, null=True)
+    email_token = models.CharField(max_length=255, blank=True, null=True)
 
     # Unique Match PIN
     match_pin = models.CharField(max_length=6, unique=True, blank=True, null=True)
@@ -79,7 +95,7 @@ class MatchProfile(models.Model):
             self.match_pin = str(random.randint(10000, 99999))
             self.save()
 
-    def __str__(self):
+    def _str_(self):
         return f'{self.full_name} ({self.email})'
 
 
@@ -92,7 +108,7 @@ class SupportTicket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_resolved = models.BooleanField(default=False)
 
-    def __str__(self):
+    def _str_(self):
         return f"Ticket from {self.sender_email}: {self.subject}"
 
 
@@ -102,7 +118,7 @@ class MatchConnection(models.Model):
     user2 = models.ForeignKey(MatchProfile, related_name='connections_as_user2', on_delete=models.CASCADE)
     connected_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def _str_(self):
         return f"Connection: {self.user1.full_name} & {self.user2.full_name}"
 
 
@@ -128,5 +144,5 @@ class ChatMessage(models.Model):
                     break
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def _str_(self):
         return f"Message from {self.sender.full_name}"

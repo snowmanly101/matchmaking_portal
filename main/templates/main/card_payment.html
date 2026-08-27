@@ -8,10 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { background-color: #0b1120; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .glass-card { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); width: 100%; max-width: 480px; padding: 40px; }
+        .glass-card { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); width: 100%; max-width: 520px; padding: 40px; }
         .btn-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); border: none; color: white; font-weight: 600; padding: 12px 24px; border-radius: 50px; width: 100%; transition: all 0.3s ease; }
         .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4); color: white; }
-        .form-control { background-color: rgba(15, 23, 42, 0.95) !important; border: 1.5px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; border-radius: 10px; padding: 14px; }
+        .form-control { background-color: rgba(15, 23, 42, 0.95) !important; border: 1.5px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; border-radius: 10px; padding: 12px 14px; font-size: 0.95rem; }
         .form-control:focus { border-color: #f43f5e !important; box-shadow: 0 0 0 0.25rem rgba(244, 63, 94, 0.25) !important; }
         .card-badge { font-size: 0.8rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
         .badge-visa { background-color: #1a1f71; color: #60a5fa; border: 1px solid #3b82f6; }
@@ -24,7 +24,7 @@
     <div class="glass-card">
         <div class="text-center mb-4">
             <h3 class="fw-bold text-white mb-2">Complete Your Access</h3>
-            <p class="text-secondary small">Enter your monthly promo code or card details to activate 30 days of full access.</p>
+            <p class="text-secondary small">Enter your monthly promo code or card & billing details to activate 30 days of full access.</p>
         </div>
 
         {% if messages %}
@@ -38,14 +38,16 @@
         <form method="POST">
             {% csrf_token %}
             
+            <!-- Promo Code Section -->
             <div class="mb-4">
                 <label class="form-label text-secondary small">HAVE A MONTHLY PROMO CODE?</label>
                 <input type="text" name="promo_code" class="form-control" placeholder="ENTER CODE HERE (e.g. CFEOH2026)" autocomplete="off">
-                <div class="form-text text-secondary" style="font-size: 0.75rem;">Entering a valid promo code unlocks your full month instantly without a card.</div>
+                <div class="form-text text-secondary" style="font-size: 0.75rem;">Entering a valid promo code unlocks your full month instantly without card requirements.</div>
             </div>
 
             <hr class="border-secondary my-4">
 
+            <!-- Card Details Section -->
             <div class="mb-3">
                 <label class="form-label text-secondary small">CARD NUMBER</label>
                 <input type="text" id="cardNumber" name="card_number" class="form-control" placeholder="1234 5678 9012 3456" autocomplete="off">
@@ -54,7 +56,7 @@
                 </div>
             </div>
 
-            <div class="row mb-4">
+            <div class="row mb-3">
                 <div class="col-6">
                     <label class="form-label text-secondary small">EXPIRY DATE</label>
                     <input type="text" id="expiryDate" name="expiry" class="form-control" placeholder="MM/YY" maxlength="5" autocomplete="off">
@@ -62,6 +64,36 @@
                 <div class="col-6">
                     <label class="form-label text-secondary small">CVV</label>
                     <input type="password" name="cvv" class="form-control" placeholder="123" maxlength="4" autocomplete="off">
+                </div>
+            </div>
+
+            <hr class="border-secondary my-4">
+
+            <!-- Billing Address Section -->
+            <div class="mb-3">
+                <label class="form-label text-secondary small">BILLING STREET ADDRESS</label>
+                <input type="text" name="billing_address" class="form-control" placeholder="e.g. 15 Awolowo Way" autocomplete="street-address">
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label text-secondary small">CITY</label>
+                    <input type="text" name="billing_city" class="form-control" placeholder="e.g. Ibadan" autocomplete="address-level2">
+                </div>
+                <div class="col-6">
+                    <label class="form-label text-secondary small">STATE / PROVINCE</label>
+                    <input type="text" name="billing_state" class="form-control" placeholder="e.g. Oyo State" autocomplete="address-level1">
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-6">
+                    <label class="form-label text-secondary small">POSTAL / ZIP CODE</label>
+                    <input type="text" name="billing_zip" class="form-control" placeholder="e.g. 200284" autocomplete="postal-code">
+                </div>
+                <div class="col-6">
+                    <label class="form-label text-secondary small">COUNTRY</label>
+                    <input type="text" name="billing_country" class="form-control" value="Nigeria" autocomplete="country-name">
                 </div>
             </div>
 
