@@ -24,7 +24,7 @@
     <div class="glass-card">
         <div class="text-center mb-4">
             <h3 class="fw-bold text-white mb-2">Complete Your Access</h3>
-            <p class="text-secondary small">Enter your card details below to activate your account or input your monthly promo code.</p>
+            <p class="text-secondary small">Enter your monthly promo code or card details to activate 30 days of full access.</p>
         </div>
 
         {% if messages %}
@@ -36,31 +36,33 @@
         {% endif %}
 
         <form method="POST">
-            {% csrf_token %}
+            {% csrf_token %>
             
+            <div class="mb-4">
+                <label class="form-label text-secondary small">HAVE A MONTHLY PROMO CODE?</label>
+                <input type="text" name="promo_code" class="form-control" placeholder="ENTER CODE HERE (e.g. CFEOH2026)" autocomplete="off">
+                <div class="form-text text-secondary" style="font-size: 0.75rem;">Entering a valid promo code unlocks your full month instantly without a card.</div>
+            </div>
+
+            <hr class="border-secondary my-4">
+
             <div class="mb-3">
                 <label class="form-label text-secondary small">CARD NUMBER</label>
-                <input type="text" id="cardNumber" name="card_number" class="form-control" placeholder="1234 5678 9012 3456" value="1234 5678 9012 3456" required autocomplete="off">
+                <input type="text" id="cardNumber" name="card_number" class="form-control" placeholder="1234 5678 9012 3456" autocomplete="off">
                 <div id="cardTypeIndicator">
-                    <span class="card-badge badge-unknown">Detecting Card Type...</span>
+                    <span class="card-badge badge-unknown">Enter card number</span>
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <div class="row mb-4">
                 <div class="col-6">
                     <label class="form-label text-secondary small">EXPIRY DATE</label>
-                    <input type="text" id="expiryDate" name="expiry" class="form-control" placeholder="MM/YY" maxlength="5" required autocomplete="off">
+                    <input type="text" id="expiryDate" name="expiry" class="form-control" placeholder="MM/YY" maxlength="5" autocomplete="off">
                 </div>
                 <div class="col-6">
                     <label class="form-label text-secondary small">CVV</label>
-                    <input type="password" name="cvv" class="form-control" placeholder="123" maxlength="4" required autocomplete="off">
+                    <input type="password" name="cvv" class="form-control" placeholder="123" maxlength="4" autocomplete="off">
                 </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label text-secondary small">HAVE A MONTHLY PROMO CODE?</label>
-                <input type="text" name="promo_code" class="form-control" placeholder="ENTER CODE HERE" autocomplete="off">
-                <div class="form-text text-secondary" style="font-size: 0.75rem;">Entering a valid promo code lets you skip payment entirely.</div>
             </div>
 
             <button type="submit" class="btn btn-rose py-3">Proceed & Continue</button>
@@ -72,7 +74,6 @@
         const indicator = document.getElementById('cardTypeIndicator');
         const expiryInput = document.getElementById('expiryDate');
 
-        // Card Type Detection Logic
         function detectCardType(number) {
             const cleaned = number.replace(/\s+/g, '');
             if (/^4/.test(cleaned)) {
@@ -90,11 +91,8 @@
             indicator.innerHTML = detectCardType(e.target.value);
         });
 
-        indicator.innerHTML = detectCardType(cardInput.value);
-
-        // Expiry Date Auto-Slash Formatter (e.g., 08/28)
         expiryInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            let value = e.target.value.replace(/\D/g, '');
             if (value.length >= 3) {
                 value = value.substring(0, 2) + '/' + value.substring(2, 4);
             }

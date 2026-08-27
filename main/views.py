@@ -1,9 +1,12 @@
 import socket
 import random
+import uuid
+from datetime import timedelta
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from .forms import (
     MatchProfileForm,
     SupportTicketForm,
@@ -88,20 +91,23 @@ def home_view(request):
                     profile.set_password(raw_password)
                     profile.registration_ip = get_client_ip(request)
                     profile.generate_pin()
+                    
+                    # Generate email activation token link instead of confusing verification codes
+                    token = str(uuid.uuid4())
+                    profile.email_token = token
                     profile.save()
                     
-                    profile.generate_code()
+                    activation_link = request.build_absolute_uri(f'/verify-email-link/{token}/')
                     
-                    # LOG FALLBACK: Always prints verification code to Render logs so you never get stuck
                     print("=========================================================")
-                    print(f"REGISTRATION CODE FOR {profile.email}: {profile.verification_code}")
+                    print(f"ACTIVATION LINK FOR {profile.email}: {activation_link}")
                     print("=========================================================")
                     
                     try:
                         socket.setdefaulttimeout(10)
                         send_mail(
-                            subject='Your AuraMatch Verification Code',
-                            message=f'Hello {profile.full_name},\n\nYour verification code is: {profile.verification_code}',
+                            subject='Activate Your AuraMatch Account',
+                            message=f'Hello {profile.full_name},\n\nPlease click the link below to activate your account and log in:\n\n{activation_link}',
                             from_email=None,
                             recipient_list=[profile.email],
                             fail_silently=False,
@@ -110,8 +116,7 @@ def home_view(request):
                         print(f"Email sending bypassed safely: {email_err}")
 
                     request.session['pending_user_id'] = profile.id
-                    messages.success(request, "Registration successful! Enter your code (check Render logs if email is delayed).")
-                    return redirect('verify_email')
+                    return redirect('check_email_notice')
                 except Exception as db_err:
                     messages.error(request, f"An error occurred during registration: {str(db_err)}")
             else:
@@ -125,6 +130,20 @@ def home_view(request):
     return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
 
 
+def check_email_notice_view(request):
+    return render(request, 'main/check_email_notice.html')
+
+
+def verify_email_link_view(request, token):
+    profile = get_object_or_404(MatchProfile, email_token=token)
+    profile.is_verified = True
+    profile.email_token = ''
+    profile.save()
+    messages.success(request, "Email verified successfully! You can now log in.")
+    return redirect('home')
+
+
+# Kept for backward compatibility if old templates target it
 def verify_email_view(request):
     user_id = request.session.get('pending_user_id') or request.session.get('user_id')
     if not user_id:
@@ -134,17 +153,15 @@ def verify_email_view(request):
 
     if request.method == 'POST':
         entered_code = request.POST.get('code')
-        if entered_code == str(profile.verification_code):
+        if entered_code and entered_code == str(getattr(profile, 'verification_code', '')):
             profile.is_verified = True
-            profile.verification_code = ''
             profile.save()
             request.session['user_id'] = profile.id
             if 'pending_user_id' in request.session:
                 del request.session['pending_user_id']
-            
             return redirect('card_payment')
         else:
-            messages.error(request, 'Invalid verification code. Please check your email inbox or Render logs.')
+            messages.error(request, 'Invalid code. Please use the activation link sent to your email.')
 
     return render(request, 'main/verify_email.html', {'profile': profile})
 
@@ -161,17 +178,20 @@ def card_payment_view(request):
         promo_code = request.POST.get('promo_code', '').strip()
         card_number = request.POST.get('card_number', '').strip()
         
+        # Promo code works completely independently from card details
         if promo_code:
-            if promo_code == CURRENT_MONTHLY_PROMO:
+            if promo_code.upper() == CURRENT_MONTHLY_PROMO:
                 profile.is_subscribed = True
-                profile.used_promo_code = promo_code
+                profile.subscription_end_date = timezone.now() + timedelta(days=30)
+                profile.used_promo_code = promo_code.upper()
                 profile.save()
-                messages.success(request, "Promo code applied successfully! Welcome aboard.")
+                messages.success(request, "Promo code applied successfully! Full monthly access unlocked.")
                 return redirect('questionnaire_step', step=1)
             else:
-                messages.error(request, "Invalid promo code. Please try again.")
+                messages.error(request, "Invalid promo code. Please check and try again.")
         elif card_number:
             profile.is_subscribed = True
+            profile.subscription_end_date = timezone.now() + timedelta(days=30)
             profile.save()
             messages.success(request, "Card verified and subscription active!")
             return redirect('questionnaire_step', step=1)
@@ -192,7 +212,6 @@ def forgot_password_view(request):
             
             request.session['reset_profile_id'] = profile.id
             
-            # LOG FALLBACK: Always prints reset code to Render logs
             print("=========================================================")
             print(f"PASSWORD RESET CODE FOR {email}: {reset_code}")
             print("=========================================================")
@@ -209,7 +228,7 @@ def forgot_password_view(request):
             except Exception as e:
                 print(f"Password reset email bypass error: {e}")
                 
-            messages.success(request, "Password reset code generated! (Check Render logs if email is delayed).")
+            messages.success(request, "Password reset code generated!")
             return redirect('reset_password')
         else:
             messages.error(request, "No account matches this email address.")
@@ -341,7 +360,11 @@ def chat_room_view(request, connection_id):
 
     partner = connection.user2 if connection.user1 == profile else connection.user1
 
-    if request.method == 'POST':
+    # Count total messages exchanged in this connection to enforce the 7-message blur wall if unpaid
+    total_messages = ChatMessage.objects.filter(connection=connection).count()
+    requires_upgrade = total_messages >= 7 and not profile.is_subscribed
+
+    if request.method == 'POST' and not requires_upgrade:
         text = request.POST.get('message_text')
         image = request.FILES.get('chat_image')
         
@@ -365,7 +388,9 @@ def chat_room_view(request, connection_id):
         'profile': profile,
         'partner': partner,
         'connection': connection,
-        'messages_list': messages_list
+        'messages_list': messages_list,
+        'requires_upgrade': requires_upgrade,
+        'total_messages': total_messages
     })
 
 
