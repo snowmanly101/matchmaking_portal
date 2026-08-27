@@ -36,7 +36,7 @@
         {% endif %}
 
         <form method="POST">
-            {% csrf_token %>
+            {% csrf_token %}
             
             <div class="mb-3">
                 <label class="form-label text-secondary small">CARD NUMBER</label>
@@ -49,17 +49,17 @@
             <div class="row mb-3">
                 <div class="col-6">
                     <label class="form-label text-secondary small">EXPIRY DATE</label>
-                    <input type="text" name="expiry" class="form-control" placeholder="MM/YY" required>
+                    <input type="text" id="expiryDate" name="expiry" class="form-control" placeholder="MM/YY" maxlength="5" required autocomplete="off">
                 </div>
                 <div class="col-6">
                     <label class="form-label text-secondary small">CVV</label>
-                    <input type="password" name="cvv" class="form-control" placeholder="123" maxlength="4" required>
+                    <input type="password" name="cvv" class="form-control" placeholder="123" maxlength="4" required autocomplete="off">
                 </div>
             </div>
 
             <div class="mb-4">
                 <label class="form-label text-secondary small">HAVE A MONTHLY PROMO CODE?</label>
-                <input type="text" name="promo_code" class="form-control" placeholder="ENTER CODE HERE">
+                <input type="text" name="promo_code" class="form-control" placeholder="ENTER CODE HERE" autocomplete="off">
                 <div class="form-text text-secondary" style="font-size: 0.75rem;">Entering a valid promo code lets you skip payment entirely.</div>
             </div>
 
@@ -70,23 +70,18 @@
     <script>
         const cardInput = document.getElementById('cardNumber');
         const indicator = document.getElementById('cardTypeIndicator');
+        const expiryInput = document.getElementById('expiryDate');
 
+        // Card Type Detection Logic
         function detectCardType(number) {
-            // Remove spaces
             const cleaned = number.replace(/\s+/g, '');
-            
-            // Visa starts with 4
             if (/^4/.test(cleaned)) {
                 return '<span class="card-badge badge-visa">VISA CARD DETECTED</span>';
-            }
-            // Mastercard starts with 51-55 or 2221-2720
-            else if (/^5[1-5]/.test(cleaned) || /^2[2-7]/.test(cleaned)) {
+            } else if (/^5[1-5]/.test(cleaned) || /^2[2-7]/.test(cleaned)) {
                 return '<span class="card-badge badge-mastercard">MASTERCARD DETECTED</span>';
-            }
-            else if (cleaned.length === 0) {
+            } else if (cleaned.length === 0) {
                 return '<span class="card-badge badge-unknown">Enter card number</span>';
-            }
-            else {
+            } else {
                 return '<span class="card-badge badge-unknown">Card Supported</span>';
             }
         }
@@ -95,8 +90,16 @@
             indicator.innerHTML = detectCardType(e.target.value);
         });
 
-        // Run on load in case prefilled
         indicator.innerHTML = detectCardType(cardInput.value);
+
+        // Expiry Date Auto-Slash Formatter (e.g., 08/28)
+        expiryInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length >= 3) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
     </script>
 </body>
 </html>
