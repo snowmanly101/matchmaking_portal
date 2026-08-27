@@ -92,7 +92,11 @@ def home_view(request):
                     
                     profile.generate_code()
                     
-                    # Bulletproof Safe email execution with timeout protection
+                    # LOG FALLBACK: Always prints verification code to Render logs so you never get stuck
+                    print("=========================================================")
+                    print(f"REGISTRATION CODE FOR {profile.email}: {profile.verification_code}")
+                    print("=========================================================")
+                    
                     try:
                         socket.setdefaulttimeout(10)
                         send_mail(
@@ -106,6 +110,7 @@ def home_view(request):
                         print(f"Email sending bypassed safely: {email_err}")
 
                     request.session['pending_user_id'] = profile.id
+                    messages.success(request, "Registration successful! Enter your code (check Render logs if email is delayed).")
                     return redirect('verify_email')
                 except Exception as db_err:
                     messages.error(request, f"An error occurred during registration: {str(db_err)}")
@@ -139,7 +144,7 @@ def verify_email_view(request):
             
             return redirect('card_payment')
         else:
-            messages.error(request, 'Invalid verification code. Please check your email inbox.')
+            messages.error(request, 'Invalid verification code. Please check your email inbox or Render logs.')
 
     return render(request, 'main/verify_email.html', {'profile': profile})
 
@@ -156,7 +161,6 @@ def card_payment_view(request):
         promo_code = request.POST.get('promo_code', '').strip()
         card_number = request.POST.get('card_number', '').strip()
         
-        # Check if the user entered the promo code
         if promo_code:
             if promo_code == CURRENT_MONTHLY_PROMO:
                 profile.is_subscribed = True
@@ -167,7 +171,6 @@ def card_payment_view(request):
             else:
                 messages.error(request, "Invalid promo code. Please try again.")
         
-        # Otherwise, check if they are paying with a card (ignoring default placeholder)
         elif card_number and card_number != "1234 5678 9012 3456":
             profile.is_subscribed = True
             profile.save()
@@ -190,8 +193,12 @@ def forgot_password_view(request):
             
             request.session['reset_profile_id'] = profile.id
             
+            # LOG FALLBACK: Always prints reset code to Render logs
+            print("=========================================================")
+            print(f"PASSWORD RESET CODE FOR {email}: {reset_code}")
+            print("=========================================================")
+            
             try:
-                # Bulletproof timeout protection so it never freezes
                 socket.setdefaulttimeout(10)
                 send_mail(
                     subject='Password Reset Code - AuraMatch',
@@ -200,12 +207,10 @@ def forgot_password_view(request):
                     recipient_list=[email],
                     fail_silently=False,
                 )
-                messages.success(request, "A password reset code has been sent to your email.")
-            except socket.timeout:
-                messages.error(request, "Connection to email server timed out. Please try again.")
             except Exception as e:
-                messages.error(request, f"Could not send email. Please check configuration.")
+                print(f"Password reset email bypass error: {e}")
                 
+            messages.success(request, "Password reset code generated! (Check Render logs if email is delayed).")
             return redirect('reset_password')
         else:
             messages.error(request, "No account matches this email address.")
