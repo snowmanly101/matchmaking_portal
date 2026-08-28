@@ -7,6 +7,7 @@ from django.core.mail import send_mail
 from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+import resend
 from .forms import (
     MatchProfileForm,
     SupportTicketForm,
@@ -105,16 +106,16 @@ def home_view(request):
                     print("=========================================================")
                     
                     try:
-                        socket.setdefaulttimeout(10)
-                        send_mail(
-                            subject='Activate Your AuraMatch Account',
-                            message=f'Hello {profile.full_name},\n\nPlease click the link below to activate your account and log in:\n\n{activation_link}',
-                            from_email=None,
-                            recipient_list=[profile.email],
-                            fail_silently=False,
-                        )
+                        resend.api_key = "re_e8NiAACP_NrKe1krbWwDnWGPt1Hw9La1"
+                        params = {
+                            "from": "AuraMatch Support <service@auramatch.forum>",
+                            "to": [profile.email],
+                            "subject": "Activate Your AuraMatch Account",
+                            "html": f"Hello {profile.full_name},<br><br>Please click the link below to activate your account and log in:<br><br><a href='{activation_link}'>{activation_link}</a>"
+                        }
+                        resend.Emails.send(params)
                     except Exception as email_err:
-                        print(f"Email sending bypassed safely: {email_err}")
+                        print(f"Resend email bypass error: {email_err}")
 
                     request.session['pending_user_id'] = profile.id
                     return redirect('check_email_notice')
@@ -234,16 +235,16 @@ def forgot_password_view(request):
             print("=========================================================")
             
             try:
-                socket.setdefaulttimeout(10)
-                send_mail(
-                    subject='Password Reset Code - AuraMatch',
-                    message=f'Hello {profile.full_name},\n\nYour password reset code is: {reset_code}',
-                    from_email=None,
-                    recipient_list=[email],
-                    fail_silently=False,
-                )
+                resend.api_key = "re_e8NiAACP_NrKe1krbWwDnWGPt1Hw9La1"
+                params = {
+                    "from": "AuraMatch Support <service@auramatch.forum>",
+                    "to": [email],
+                    "subject": "Password Reset Code - AuraMatch",
+                    "html": f"Hello {profile.full_name},<br><br>Your password reset code is: <strong>{reset_code}</strong>"
+                }
+                resend.Emails.send(params)
             except Exception as e:
-                print(f"Password reset email bypass error: {e}")
+                print(f"Resend password reset email error: {e}")
                 
             messages.success(request, "Password reset code generated!")
             return redirect('reset_password')
