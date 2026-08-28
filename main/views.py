@@ -8,6 +8,7 @@ from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 import resend
+
 from .forms import (
     MatchProfileForm,
     SupportTicketForm,
@@ -21,9 +22,9 @@ from .forms import (
     Question8Form,
     Question9Form,
 )
-from .models import MatchProfile, SupportTicket, MatchConnection, ChatMessage
+from .models import MatchProfile, SupportTicket
 
-resend.api_key = os.getenv("RESEND_API_KEY", "re_e8NiAACP_NrKe1krbWwDnWGPt1Hw9La1")
+resend.api_key = os.getenv("RESEND_API_KEY", "Re_VmvcW3Jr_6mXqAx4fJ89fy29AJ3Jiv2Db")
 
 
 def get_client_ip(request):
@@ -378,7 +379,6 @@ def chat_room_view(request, connection_id):
 
     partner = connection.user2 if connection.user1 == profile else connection.user1
 
-    # Count total messages exchanged in this connection to enforce the 7-message blur wall if unpaid
     total_messages = ChatMessage.objects.filter(connection=connection).count()
     requires_upgrade = total_messages >= 7 and not profile.is_subscribed
 
