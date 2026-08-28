@@ -7,7 +7,6 @@ from django.contrib import messages
 from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-import res
 import resend
 from .forms import (
     MatchProfileForm,
