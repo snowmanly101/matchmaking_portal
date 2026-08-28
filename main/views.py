@@ -1,12 +1,13 @@
 import socket
 import random
 import uuid
+import os
 from datetime import timedelta
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+import res
 import resend
 from .forms import (
     MatchProfileForm,
@@ -22,6 +23,8 @@ from .forms import (
     Question9Form,
 )
 from .models import MatchProfile, SupportTicket, MatchConnection, ChatMessage
+
+resend.api_key = os.getenv("RESEND_API_KEY", "re_e8NiAACP_NrKe1krbWwDnWGPt1Hw9La1")
 
 
 def get_client_ip(request):
@@ -106,7 +109,6 @@ def home_view(request):
                     print("=========================================================")
                     
                     try:
-                        resend.api_key = "re_e8NiAACP_NrKe1krbWwDnWGPt1Hw9La1"
                         params = {
                             "from": "AuraMatch Support <service@auramatch.forum>",
                             "to": [profile.email],
@@ -115,7 +117,7 @@ def home_view(request):
                         }
                         resend.Emails.send(params)
                     except Exception as email_err:
-                        print(f"Resend email bypass error: {email_err}")
+                        print(f"Resend email error: {email_err}")
 
                     request.session['pending_user_id'] = profile.id
                     return redirect('check_email_notice')
@@ -235,7 +237,6 @@ def forgot_password_view(request):
             print("=========================================================")
             
             try:
-                resend.api_key = "re_e8NiAACP_NrKe1krbWwDnWGPt1Hw9La1"
                 params = {
                     "from": "AuraMatch Support <service@auramatch.forum>",
                     "to": [email],
