@@ -1,13 +1,12 @@
-import socket
+import os
 import random
 import uuid
-import os
 from datetime import timedelta
 from django.contrib import messages
+from django.core.mail import send_mail
 from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-import resend
 
 from .forms import (
     MatchProfileForm,
@@ -23,8 +22,6 @@ from .forms import (
     Question9Form,
 )
 from .models import MatchProfile, SupportTicket
-
-resend.api_key = os.getenv("RESEND_API_KEY", "Re_VmvcW3Jr_6mXqAx4fJ89fy29AJ3Jiv2Db")
 
 
 def get_client_ip(request):
@@ -109,15 +106,18 @@ def home_view(request):
                     print("=========================================================")
                     
                     try:
-                        params = {
-                            "from": "AuraMatch Support <service@auramatch.forum>",
-                            "to": [profile.email],
-                            "subject": "Activate Your AuraMatch Account",
-                            "html": f"Hello {profile.full_name},<br><br>Please click the link below to activate your account and log in:<br><br><a href='{activation_link}'>{activation_link}</a>"
-                        }
-                        resend.Emails.send(params)
+                        subject = "Activate Your AuraMatch Account"
+                        html_message = f"Hello {profile.full_name},<br><br>Please click the link below to activate your account and log in:<br><br><a href='{activation_link}'>{activation_link}</a>"
+                        send_mail(
+                            subject,
+                            '',
+                            None,  # Uses DEFAULT_FROM_EMAIL from settings.py
+                            [profile.email],
+                            html_message=html_message,
+                            fail_silently=False,
+                        )
                     except Exception as email_err:
-                        print(f"Resend email error: {email_err}")
+                        print(f"SMTP email error: {email_err}")
 
                     request.session['pending_user_id'] = profile.id
                     return redirect('check_email_notice')
@@ -237,15 +237,18 @@ def forgot_password_view(request):
             print("=========================================================")
             
             try:
-                params = {
-                    "from": "AuraMatch Support <service@auramatch.forum>",
-                    "to": [email],
-                    "subject": "Password Reset Code - AuraMatch",
-                    "html": f"Hello {profile.full_name},<br><br>Your password reset code is: <strong>{reset_code}</strong>"
-                }
-                resend.Emails.send(params)
+                subject = "Password Reset Code - AuraMatch"
+                html_message = f"Hello {profile.full_name},<br><br>Your password reset code is: <strong>{reset_code}</strong>"
+                send_mail(
+                    subject,
+                    '',
+                    None,
+                    [email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
             except Exception as e:
-                print(f"Resend password reset email error: {e}")
+                print(f"SMTP password reset email error: {e}")
                 
             messages.success(request, "Password reset code generated!")
             return redirect('reset_password')
