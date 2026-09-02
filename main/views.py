@@ -111,7 +111,7 @@ def home_view(request):
                         send_mail(
                             subject,
                             '',
-                            None,  # Uses DEFAULT_FROM_EMAIL from settings.py
+                            "AuraMatch Support <service@auramatch.forum>",
                             [profile.email],
                             html_message=html_message,
                             fail_silently=False,
@@ -242,7 +242,7 @@ def forgot_password_view(request):
                 send_mail(
                     subject,
                     '',
-                    None,
+                    "AuraMatch Support <support@auramatch.forum>",
                     [email],
                     html_message=html_message,
                     fail_silently=False,
