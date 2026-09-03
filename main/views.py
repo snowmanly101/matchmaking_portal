@@ -359,7 +359,7 @@ def chat_room_view(request, connection_id):
         text = request.POST.get('message_text')
         image = request.FILES.get('chat_image')
         
-        |text or image|:
+        if text or image:
             ChatMessage.objects.create(
                 connection=connection,
                 sender=profile,
