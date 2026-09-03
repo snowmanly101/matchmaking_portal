@@ -21,7 +21,7 @@ from .forms import (
     Question8Form,
     Question9Form,
 )
-from .models import MatchProfile, SupportTicket
+from .models import MatchProfile, SupportTicket, MatchConnection, ChatMessage
 
 
 def get_client_ip(request):
@@ -389,6 +389,6 @@ def terms_view(request):
     return render(request, 'main/terms.html')
 
 
-def logout_view(request):
+def logout_user(request):
     request.session.flush()
     return redirect('home')
