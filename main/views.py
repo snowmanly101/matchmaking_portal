@@ -389,6 +389,6 @@ def terms_view(request):
     return render(request, 'main/terms.html')
 
 
-def logout_user(request):
+def logout_view(request):
     request.session.flush()
     return redirect('home')
