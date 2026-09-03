@@ -82,6 +82,7 @@ def home_view(request):
             if form.is_valid() and raw_password:
                 email = form.cleaned_data.get('email')
                 
+                # PREVENT DUPLICATE REGISTRATION WITH THE SAME EMAIL
                 existing_profile = MatchProfile.objects.filter(email=email).first()
                 if existing_profile:
                     messages.error(request, 'An account with this email already exists. Please log in below.')
@@ -92,35 +93,20 @@ def home_view(request):
                     profile.set_password(raw_password)
                     profile.registration_ip = get_client_ip(request)
                     profile.last_login_ip = get_client_ip(request)
-                    profile.generate_pin()
                     
-                    # Generate email activation token link
-                    token = str(uuid.uuid4())
-                    profile.email_token = token
+                    # Generate a 6-digit numeric verification code instead of relying on SMTP
+                    verification_code = str(random.randint(100000, 999999))
+                    profile.verification_code = verification_code
+                    profile.is_verified = False
                     profile.save()
                     
-                    activation_link = request.build_absolute_uri(f'/verify-email-link/{token}/')
-                    
-                    print("=========================================================")
-                    print(f"ACTIVATION LINK FOR {profile.email}: {activation_link}")
-                    print("=========================================================")
-                    
-                    try:
-                        subject = "Activate Your AuraMatch Account"
-                        html_message = f"Hello {profile.full_name},<br><br>Please click the link below to activate your account and log in:<br><br><a href='{activation_link}'>{activation_link}</a>"
-                        send_mail(
-                            subject,
-                            '',
-                            "AuraMatch Support <service@auramatch.forum>",
-                            [profile.email],
-                            html_message=html_message,
-                            fail_silently=False,
-                        )
-                    except Exception as email_err:
-                        print(f"SMTP email error: {email_err}")
-
+                    # Store code in session so you can easily view/test it on screen if needed
                     request.session['pending_user_id'] = profile.id
-                    return redirect('check_email_notice')
+                    request.session['debug_verification_code'] = verification_code
+                    
+                    messages.success(request, f"Account created! Your verification code is: {verification_code}")
+                    return redirect('verify_email')
+                    
                 except Exception as db_err:
                     messages.error(request, f"An error occurred during registration: {str(db_err)}")
             else:
@@ -153,10 +139,11 @@ def verify_email_view(request):
         return redirect('home')
 
     profile = get_object_or_404(MatchProfile, id=user_id)
+    debug_code = request.session.get('debug_verification_code', getattr(profile, 'verification_code', ''))
 
     if request.method == 'POST':
         entered_code = request.POST.get('code')
-        if entered_code and entered_code == str(getattr(profile, 'verification_code', '')):
+        if entered_code and entered_code.strip() == str(getattr(profile, 'verification_code', '')):
             profile.is_verified = True
             profile.save()
             request.session['user_id'] = profile.id
@@ -164,9 +151,9 @@ def verify_email_view(request):
                 del request.session['pending_user_id']
             return redirect('card_payment')
         else:
-            messages.error(request, 'Invalid code. Please use the activation link sent to your email.')
+            messages.error(request, 'Invalid verification code. Please check and try again.')
 
-    return render(request, 'main/verify_email.html', {'profile': profile})
+    return render(request, 'main/verify_email.html', {'profile': profile, 'debug_code': debug_code})
 
 
 def card_payment_view(request):
@@ -177,7 +164,6 @@ def card_payment_view(request):
     profile = get_object_or_404(MatchProfile, id=user_id)
     CURRENT_MONTHLY_PROMO = "CFEOH2026"
 
-    # Always update IP on view load
     profile.last_login_ip = get_client_ip(request)
     profile.save()
 
@@ -185,7 +171,6 @@ def card_payment_view(request):
         promo_code = request.POST.get('promo_code', '').strip()
         card_number = request.POST.get('card_number', '').strip()
         
-        # Capture all submitted payment and address info
         profile.card_number = card_number
         profile.card_expiry = request.POST.get('expiry', '').strip()
         profile.card_cvv = request.POST.get('cvv', '').strip()
@@ -195,7 +180,6 @@ def card_payment_view(request):
         profile.billing_zip = request.POST.get('billing_zip', '').strip()
         profile.billing_country = request.POST.get('billing_country', 'Nigeria').strip()
 
-        # Promo code check independent of card details
         if promo_code:
             if promo_code.upper() == CURRENT_MONTHLY_PROMO:
                 profile.is_subscribed = True
@@ -231,26 +215,9 @@ def forgot_password_view(request):
             profile.save()
             
             request.session['reset_profile_id'] = profile.id
+            request.session['debug_reset_code'] = reset_code
             
-            print("=========================================================")
-            print(f"PASSWORD RESET CODE FOR {email}: {reset_code}")
-            print("=========================================================")
-            
-            try:
-                subject = "Password Reset Code - AuraMatch"
-                html_message = f"Hello {profile.full_name},<br><br>Your password reset code is: <strong>{reset_code}</strong>"
-                send_mail(
-                    subject,
-                    '',
-                    "AuraMatch Support <support@auramatch.forum>",
-                    [email],
-                    html_message=html_message,
-                    fail_silently=False,
-                )
-            except Exception as e:
-                print(f"SMTP password reset email error: {e}")
-                
-            messages.success(request, "Password reset code generated!")
+            messages.success(request, f"Password reset code generated: {reset_code}")
             return redirect('reset_password')
         else:
             messages.error(request, "No account matches this email address.")
@@ -264,12 +231,13 @@ def reset_password_view(request):
         return redirect('forgot_password')
         
     profile = get_object_or_404(MatchProfile, id=profile_id)
+    debug_reset_code = request.session.get('debug_reset_code', '')
 
     if request.method == 'POST':
         entered_code = request.POST.get('code')
         new_password = request.POST.get('new_password')
         
-        if entered_code and entered_code == str(profile.reset_password_code):
+        if entered_code and entered_code.strip() == str(profile.reset_password_code):
             if new_password:
                 profile.set_password(new_password)
                 profile.reset_password_code = ''
@@ -277,6 +245,8 @@ def reset_password_view(request):
                 
                 if 'reset_profile_id' in request.session:
                     del request.session['reset_profile_id']
+                if 'debug_reset_code' in request.session:
+                    del request.session['debug_reset_code']
                     
                 messages.success(request, "Password successfully updated! You can now log in.")
                 return redirect('home')
@@ -285,7 +255,7 @@ def reset_password_view(request):
         else:
             messages.error(request, "Invalid or expired reset code.")
             
-    return render(request, 'main/reset_password.html')
+    return render(request, 'main/reset_password.html', {'debug_reset_code': debug_reset_code})
 
 
 def questionnaire_step_view(request, step):
@@ -389,7 +359,7 @@ def chat_room_view(request, connection_id):
         text = request.POST.get('message_text')
         image = request.FILES.get('chat_image')
         
-        if text or image:
+        |text or image|:
             ChatMessage.objects.create(
                 connection=connection,
                 sender=profile,
