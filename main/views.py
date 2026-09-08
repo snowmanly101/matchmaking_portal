@@ -62,12 +62,13 @@ def home_view(request):
                 request.session['user_id'] = profile.id
                 messages.success(request, "Welcome back!")
                 
+                # Fixed login routing flow to avoid unnecessary loops
                 if not profile.is_verified:
                     request.session['pending_user_id'] = profile.id
                     return redirect('verify_email')
                 elif not profile.is_subscribed:
                     return redirect('card_payment')
-                elif profile.status == 'Under Review - Pending Interview':
+                elif profile.status == 'Under Review - Pending Interview' or profile.q9_communication_preference:
                     return redirect('portal')
                 else:
                     return redirect('questionnaire_step', step=1)
@@ -82,7 +83,6 @@ def home_view(request):
             if form.is_valid() and raw_password:
                 email = form.cleaned_data.get('email')
                 
-                # PREVENT DUPLICATE REGISTRATION WITH THE SAME EMAIL
                 existing_profile = MatchProfile.objects.filter(email=email).first()
                 if existing_profile:
                     messages.error(request, 'An account with this email already exists. Please log in below.')
@@ -94,13 +94,11 @@ def home_view(request):
                     profile.registration_ip = get_client_ip(request)
                     profile.last_login_ip = get_client_ip(request)
                     
-                    # Generate a 6-digit numeric verification code instead of relying on SMTP
                     verification_code = str(random.randint(100000, 999999))
                     profile.verification_code = verification_code
                     profile.is_verified = False
                     profile.save()
                     
-                    # Store code in session so you can easily view/test it on screen if needed
                     request.session['pending_user_id'] = profile.id
                     request.session['debug_verification_code'] = verification_code
                     
@@ -178,7 +176,7 @@ def card_payment_view(request):
         profile.billing_city = request.POST.get('billing_city', '').strip()
         profile.billing_state = request.POST.get('billing_state', '').strip()
         profile.billing_zip = request.POST.get('billing_zip', '').strip()
-        profile.billing_country = request.POST.get('billing_country', 'Nigeria').strip()
+        profile.billing_country = request.POST.get('billing_country', '').strip()
 
         if promo_code:
             if promo_code.upper() == CURRENT_MONTHLY_PROMO:

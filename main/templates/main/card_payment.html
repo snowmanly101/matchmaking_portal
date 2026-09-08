@@ -11,8 +11,8 @@
         .glass-card { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); width: 100%; max-width: 520px; padding: 40px; }
         .btn-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); border: none; color: white; font-weight: 600; padding: 12px 24px; border-radius: 50px; width: 100%; transition: all 0.3s ease; }
         .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4); color: white; }
-        .form-control { background-color: rgba(15, 23, 42, 0.95) !important; border: 1.5px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; border-radius: 10px; padding: 12px 14px; font-size: 0.95rem; }
-        .form-control:focus { border-color: #f43f5e !important; box-shadow: 0 0 0 0.25rem rgba(244, 63, 94, 0.25) !important; }
+        .form-control, .form-select { background-color: rgba(15, 23, 42, 0.95) !important; border: 1.5px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; border-radius: 10px; padding: 12px 14px; font-size: 0.95rem; }
+        .form-control:focus, .form-select:focus { border-color: #f43f5e !important; box-shadow: 0 0 0 0.25rem rgba(244, 63, 94, 0.25) !important; }
         .card-badge { font-size: 0.8rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
         .badge-visa { background-color: #1a1f71; color: #60a5fa; border: 1px solid #3b82f6; }
         .badge-mastercard { background-color: #eb001b; color: #fff; }
@@ -41,7 +41,7 @@
             <!-- Promo Code Section -->
             <div class="mb-4">
                 <label class="form-label text-secondary small">HAVE A MONTHLY PROMO CODE?</label>
-                <input type="text" name="promo_code" class="form-control" placeholder="ENTER CODE HERE (e.g. CFEOH2026)" autocomplete="off">
+                <input type="text" name="promo_code" class="form-control" placeholder="Enter promo code" autocomplete="off">
                 <div class="form-text text-secondary" style="font-size: 0.75rem;">Entering a valid promo code unlocks your full month instantly without card requirements.</div>
             </div>
 
@@ -72,28 +72,36 @@
             <!-- Billing Address Section -->
             <div class="mb-3">
                 <label class="form-label text-secondary small">BILLING STREET ADDRESS</label>
-                <input type="text" name="billing_address" class="form-control" placeholder="e.g. 15 Awolowo Way" autocomplete="street-address">
+                <input type="text" name="billing_address" class="form-control" placeholder="e.g. 123 Broadway" autocomplete="street-address">
             </div>
 
             <div class="row mb-3">
                 <div class="col-6">
                     <label class="form-label text-secondary small">CITY</label>
-                    <input type="text" name="billing_city" class="form-control" placeholder="e.g. Ibadan" autocomplete="address-level2">
+                    <input type="text" name="billing_city" class="form-control" placeholder="e.g. New York" autocomplete="address-level2">
                 </div>
                 <div class="col-6">
                     <label class="form-label text-secondary small">STATE / PROVINCE</label>
-                    <input type="text" name="billing_state" class="form-control" placeholder="e.g. Oyo State" autocomplete="address-level1">
+                    <input type="text" name="billing_state" class="form-control" placeholder="e.g. NY" autocomplete="address-level1">
                 </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-6">
                     <label class="form-label text-secondary small">POSTAL / ZIP CODE</label>
-                    <input type="text" name="billing_zip" class="form-control" placeholder="e.g. 200284" autocomplete="postal-code">
+                    <input type="text" name="billing_zip" class="form-control" placeholder="e.g. 10001" autocomplete="postal-code">
                 </div>
                 <div class="col-6">
                     <label class="form-label text-secondary small">COUNTRY</label>
-                    <input type="text" name="billing_country" class="form-control" value="Nigeria" autocomplete="country-name">
+                    <select name="billing_country" class="form-select" autocomplete="country-name">
+                        <option value="" disabled selected>Select Country</option>
+                        <option value="United States">United States</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Germany">Germany</option>
+                        <option value="France">France</option>
+                    </select>
                 </div>
             </div>
 
