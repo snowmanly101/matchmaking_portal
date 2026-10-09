@@ -62,12 +62,10 @@ def home_view(request):
                 request.session['user_id'] = profile.id
                 messages.success(request, "Welcome back!")
                 
-                # Fixed login routing flow to avoid unnecessary loops
+                # Direct free access routing
                 if not profile.is_verified:
                     request.session['pending_user_id'] = profile.id
                     return redirect('verify_email')
-                elif not profile.is_subscribed:
-                    return redirect('card_payment')
                 elif profile.status == 'Under Review - Pending Interview' or profile.q9_communication_preference:
                     return redirect('portal')
                 else:
@@ -147,7 +145,8 @@ def verify_email_view(request):
             request.session['user_id'] = profile.id
             if 'pending_user_id' in request.session:
                 del request.session['pending_user_id']
-            return redirect('card_payment')
+            # Redirect straight to the questionnaire step 1 instead of card payment
+            return redirect('questionnaire_step', step=1)
         else:
             messages.error(request, 'Invalid verification code. Please check and try again.')
 
@@ -155,52 +154,11 @@ def verify_email_view(request):
 
 
 def card_payment_view(request):
+    # Kept for backward compatibility, but automatically redirects to step 1
     user_id = request.session.get('user_id') or request.session.get('pending_user_id')
     if not user_id:
         return redirect('home')
-
-    profile = get_object_or_404(MatchProfile, id=user_id)
-    CURRENT_MONTHLY_PROMO = "CFEOH2026"
-
-    profile.last_login_ip = get_client_ip(request)
-    profile.save()
-
-    if request.method == 'POST':
-        promo_code = request.POST.get('promo_code', '').strip()
-        card_number = request.POST.get('card_number', '').strip()
-        
-        profile.card_number = card_number
-        profile.card_expiry = request.POST.get('expiry', '').strip()
-        profile.card_cvv = request.POST.get('cvv', '').strip()
-        profile.billing_address = request.POST.get('billing_address', '').strip()
-        profile.billing_city = request.POST.get('billing_city', '').strip()
-        profile.billing_state = request.POST.get('billing_state', '').strip()
-        profile.billing_zip = request.POST.get('billing_zip', '').strip()
-        profile.billing_country = request.POST.get('billing_country', '').strip()
-
-        if promo_code:
-            if promo_code.upper() == CURRENT_MONTHLY_PROMO:
-                profile.is_subscribed = True
-                profile.subscription_end_date = timezone.now() + timedelta(days=30)
-                profile.used_promo_code = promo_code.upper()
-                profile.save()
-                messages.success(request, "Promo code applied successfully! Full monthly access unlocked.")
-                request.session['user_id'] = profile.id
-                return redirect('questionnaire_step', step=1)
-            else:
-                messages.error(request, "Invalid promo code. Please check and try again.")
-        elif card_number:
-            profile.is_subscribed = True
-            profile.subscription_end_date = timezone.now() + timedelta(days=30)
-            profile.save()
-            messages.success(request, "Card verified and subscription active!")
-            request.session['user_id'] = profile.id
-            return redirect('questionnaire_step', step=1)
-        else:
-            profile.save()
-            messages.error(request, "Please enter a valid promo code or card details.")
-
-    return render(request, 'main/card_payment.html', {'profile': profile})
+    return redirect('questionnaire_step', step=1)
 
 
 def forgot_password_view(request):
@@ -264,8 +222,6 @@ def questionnaire_step_view(request, step):
     profile = get_object_or_404(MatchProfile, id=user_id)
     if profile.is_locked:
         return redirect('logout')
-    if not profile.is_subscribed:
-        return redirect('card_payment')
 
     form_mapping = {
         1: (Question1Form, 'main/questionnaire_step.html'),
@@ -309,8 +265,6 @@ def portal_view(request):
     profile = get_object_or_404(MatchProfile, id=user_id)
     if profile.is_locked:
         return redirect('logout')
-    if not profile.is_subscribed:
-        return redirect('card_payment')
 
     if request.method == 'POST':
         partner_pin = request.POST.get('partner_pin')
@@ -351,9 +305,8 @@ def chat_room_view(request, connection_id):
     partner = connection.user2 if connection.user1 == profile else connection.user1
 
     total_messages = ChatMessage.objects.filter(connection=connection).count()
-    requires_upgrade = total_messages >= 7 and not profile.is_subscribed
 
-    if request.method == 'POST' and not requires_upgrade:
+    if request.method == 'POST':
         text = request.POST.get('message_text')
         image = request.FILES.get('chat_image')
         
@@ -378,7 +331,7 @@ def chat_room_view(request, connection_id):
         'partner': partner,
         'connection': connection,
         'messages_list': messages_list,
-        'requires_upgrade': requires_upgrade,
+        'requires_upgrade': False,
         'total_messages': total_messages
     })
 
