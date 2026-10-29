@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Profile Photos - Auramatch</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 40px 20px; text-align: center; }
+        .card { max-width: 500px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-bottom: 10px; }
+        p { color: #666; font-size: 14px; line-height: 1.5; }
+        .alert { padding: 12px; margin-bottom: 15px; border-radius: 6px; font-weight: bold; }
+        .alert-error { background-color: #f8d7da; color: #721c24; }
+        .alert-success { background-color: #d4edda; color: #155724; }
+        input[type="file"] { margin: 20px 0; padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        button { background-color: #e91e63; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; }
+        button:hover { background-color: #d81b60; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📸 Activate Your Profile</h2>
+    <p>To keep Auramatch safe and authentic, you must upload <strong>at least 2 profile photos</strong> before your account goes live.</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="photos"><strong>Select 2 or more photos:</strong></label>
+        <input type="file" name="photos" id="photos" multiple required accept="image/*">
+        
+        <button type="submit">Upload Photos & Continue</button>
+    </form>
+</div>
+
+</body>
+</html>
