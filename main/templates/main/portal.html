@@ -11,7 +11,7 @@
         .brand-logo { font-weight: 700; letter-spacing: 2px; background: linear-gradient(45deg, #f43f5e, #fb7185); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .glass-card { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         .badge-status { background: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.4); font-weight: 600; }
-        .btn-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); border: none; color: white; font-weight: 600; padding: 10px 20px; border-radius: 50px; transition: all 0.3s ease; }
+        .btn-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); border: none; color: white; font-weight: 600; padding: 8px 18px; border-radius: 50px; transition: all 0.3s ease; }
         .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4); color: white; }
         .user-card { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; transition: transform 0.2s; }
         .user-card:hover { transform: translateY(-5px); border-color: #f43f5e; }
@@ -19,17 +19,35 @@
 </head>
 <body>
 
-    <!-- Navbar with Inbox & Connections -->
+    <!-- Navbar -->
     <nav class="navbar navbar-dark py-3 border-bottom border-secondary border-opacity-10">
         <div class="container d-flex justify-content-between align-items-center">
             <a class="navbar-brand brand-logo fs-3" href="{% url 'portal' %}">AURAMATCH</a>
             
             <div class="d-flex align-items-center gap-3">
+                <!-- Inbox Dropdown -->
                 <div class="dropdown">
                     <button class="btn btn-outline-danger btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         💬 Inbox & Connections ({% if connections %}{{ connections.count }}{% else %}0{% endif %})
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark p-3 shadow" style="width: 320px; background: #0f172a; border: 1px solid rgba(244,63,94,0.3);">
+                    <ul class="dropdown-menu dropdown-menu-dark p-3 shadow" style="width: 340px; background: #0f172a; border: 1px solid rgba(244,63,94,0.3);">
+                        
+                        <!-- Pending Incoming Requests -->
+                        {% if pending_requests %}
+                            <li><h6 class="text-warning mb-2">📩 Pending PIN Requests</h6></li>
+                            {% for req in pending_requests %}
+                                <li class="bg-dark p-2 rounded mb-2 border border-warning d-flex justify-content-between align-items-center">
+                                    <span class="small text-white">{{ req.user1.full_name }}</span>
+                                    <form method="POST" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="approve_connection_id" value="{{ req.id }}">
+                                        <button type="submit" class="btn btn-success btn-sm py-0">Approve</button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                            <li><hr class="dropdown-divider border-secondary"></li>
+                        {% endif %}
+
                         <li><h6 class="text-white mb-2">Active Conversations</h6></li>
                         {% if connections %}
                             {% for conn in connections %}
@@ -53,9 +71,9 @@
                         <li>
                             <form method="POST" class="mt-2">
                                 {% csrf_token %}
-                                <label class="form-label text-secondary small mb-1">Connect via Partner Match PIN:</label>
+                                <label class="form-label text-secondary small mb-1">Enter Partner Match PIN:</label>
                                 <div class="input-group input-group-sm">
-                                    <input type="text" name="partner_pin" class="form-control bg-dark text-white border-secondary" placeholder="Enter PIN" required>
+                                    <input type="text" name="partner_pin" class="form-control bg-dark text-white border-secondary" placeholder="PIN Code" required>
                                     <button type="submit" class="btn btn-rose btn-sm">Connect</button>
                                 </div>
                             </form>
@@ -78,7 +96,7 @@
         {% endif %}
 
         <div class="row g-4">
-            <!-- LEFT COLUMN: User's Own Profile & Editable Bio -->
+            <!-- LEFT COLUMN: Profile Details, Music & Bio Editor -->
             <div class="col-lg-4">
                 <div class="glass-card p-4 text-center">
                     {% if profile.profile_image %}
@@ -98,34 +116,41 @@
                         <p class="mb-0"><strong>Occupation:</strong> <span class="text-light">{{ profile.occupation }}</span></p>
                     </div>
 
-                    <!-- Unique Match PIN -->
+                    <!-- Match PIN Display -->
                     <div class="p-3 rounded-3 text-center mb-3" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(244, 63, 94, 0.3);">
-                        <span class="text-secondary small d-block mb-1">Your Unique Match PIN:</span>
+                        <span class="text-secondary small d-block mb-1">Your Match PIN:</span>
                         <span class="badge bg-danger fs-4 px-3 py-2">{{ profile.match_pin }}</span>
                     </div>
 
-                    <!-- Editable Bio Form -->
+                    <!-- Editable Profile Interests, Music & Bio -->
                     <form method="POST" class="text-start">
                         {% csrf_token %}
-                        <label class="form-label text-secondary small fw-bold">Write About Yourself (Bio):</label>
+                        <label class="form-label text-secondary small fw-bold">🎵 Favorite Music / Artists:</label>
+                        <input type="text" name="fav_music" value="{{ profile.favorite_music }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Afrobeats, R&B, Drake, Wizkid">
+
+                        <label class="form-label text-secondary small fw-bold">⚽ Hobbies & Likes:</label>
+                        <input type="text" name="interests" value="{{ profile.interests }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Travel, Movies, Gaming">
+
+                        <label class="form-label text-secondary small fw-bold">📝 About Yourself (Bio):</label>
                         <textarea name="bio" class="form-control bg-dark text-white border-secondary mb-2" rows="3">{{ profile.bio }}</textarea>
-                        <button type="submit" name="update_bio" class="btn btn-rose btn-sm w-100">Save Bio</button>
+                        
+                        <button type="submit" name="update_bio" class="btn btn-rose btn-sm w-100">Save Profile Info</button>
                     </form>
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Active Matches Directory & Search -->
+            <!-- RIGHT COLUMN: Active Dating Directory & Direct PIN Requests -->
             <div class="col-lg-8">
                 <div class="glass-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                        <h4 class="fw-bold text-white m-0">Explore Compatible Matches</h4>
+                        <h4 class="fw-bold text-white m-0">Explore Matches</h4>
                         <span class="badge bg-success px-3 py-2 rounded-pill">🟢 {{ online_count }} Users Online</span>
                     </div>
 
-                    <!-- Search & Filter Bar -->
+                    <!-- Search Filter -->
                     <form method="GET" class="row g-2 mb-4">
                         <div class="col-md-7">
-                            <input type="text" name="q" value="{{ query }}" class="form-control bg-dark text-white border-secondary" placeholder="Search name, country, occupation, bio...">
+                            <input type="text" name="q" value="{{ query }}" class="form-control bg-dark text-white border-secondary" placeholder="Search name, country, occupation, music...">
                         </div>
                         <div class="col-md-3">
                             <select name="gender" class="form-select bg-dark text-white border-secondary">
@@ -139,22 +164,36 @@
                         </div>
                     </form>
 
-                    <!-- User Match Cards Grid -->
+                    <!-- User Cards Grid -->
                     <div class="row g-3">
                         {% for target in active_users %}
                             <div class="col-md-6">
-                                <div class="user-card p-3 text-center h-d-flex flex-column justify-content-between">
+                                <div class="user-card p-3 text-center h-100 d-flex flex-column justify-content-between">
                                     <div>
                                         {% if target.profile_image %}
-                                            <img src="{{ target.profile_image.url }}" alt="{{ target.full_name }}" class="rounded-circle mb-3 shadow" style="width: 90px; height: 90px; object-fit: cover; border: 2px solid #f43f5e;">
+                                            <img src="{{ target.profile_image.url }}" alt="{{ target.full_name }}" class="rounded-circle mb-2 shadow" style="width: 85px; height: 85px; object-fit: cover; border: 2px solid #f43f5e;">
                                         {% else %}
-                                            <img src="https://via.placeholder.com/90" alt="Profile" class="rounded-circle mb-3 shadow" style="width: 90px; height: 90px; object-fit: cover; border: 2px solid #f43f5e;">
+                                            <img src="https://via.placeholder.com/85" alt="Profile" class="rounded-circle mb-2 shadow" style="width: 85px; height: 85px; object-fit: cover; border: 2px solid #f43f5e;">
                                         {% endif %}
+                                        
                                         <h5 class="fw-bold text-white mb-1">{{ target.full_name }}, {{ target.age }}</h5>
                                         <p class="text-secondary small mb-1">📍 {{ target.country }} | 💼 {{ target.occupation }}</p>
+
+                                        {% if target.favorite_music %}
+                                            <p class="text-warning small mb-1">🎵 {{ target.favorite_music }}</p>
+                                        {% endif %}
+
                                         <p class="text-light small fst-italic text-truncate px-2">"{{ target.bio }}"</p>
                                     </div>
-                                    <a href="{% url 'view_profile' target.id %}" class="btn btn-outline-danger btn-sm rounded-pill mt-2 w-100">View Full Profile & Questionnaire</a>
+
+                                    <div class="mt-2 d-flex gap-2">
+                                        <form method="POST" class="w-50 m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="target_user_id" value="{{ target.id }}">
+                                            <button type="submit" name="send_pin_request" class="btn btn-outline-danger btn-sm rounded-pill w-100">🔑 Request PIN</button>
+                                        </form>
+                                        <a href="{% url 'view_profile' target.id %}" class="btn btn-rose btn-sm rounded-pill w-50">View Profile</a>
+                                    </div>
                                 </div>
                             </div>
                         {% empty %}
