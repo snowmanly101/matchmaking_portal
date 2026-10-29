@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ target_profile.full_name }}'s Profile - Auramatch</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 30px 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; }
+        .header { display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+        .header img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #e11d48; }
+        .actions { margin: 20px 0; display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; }
+        .btn-like { background: #e11d48; color: white; }
+        .btn-chat { background: #10b981; color: white; }
+        .question-box { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #e11d48; }
+        .locked-notice { background: #334155; padding: 20px; border-radius: 8px; text-align: center; margin-top: 20px; }
+        input[type="text"] { padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; width: 200px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="{% url 'portal' %}" style="color: #94a3b8; text-decoration: none;">← Back to Portal</a>
+
+    <div class="header" style="margin-top: 15px;">
+        {% if target_profile.profile_image %}
+            <img src="{{ target_profile.profile_image.url }}" alt="Profile">
+        {% else %}
+            <img src="https://via.placeholder.com/120" alt="Profile">
+        {% endif %}
+        <div>
+            <h1 style="margin: 0;">{{ target_profile.full_name }}, {{ target_profile.age }}</h1>
+            <p style="color: #94a3b8; margin: 5px 0;">📍 {{ target_profile.country }} | 💼 {{ target_profile.occupation }} | 🚻 {{ target_profile.gender }}</p>
+            <p style="margin-top: 10px;"><em>"{{ target_profile.bio }}"</em></p>
+        </div>
+    </div>
+
+    <!-- Actions & PIN Sharing -->
+    <div class="actions">
+        <a href="{% url 'toggle_like' target_profile.id %}" class="btn btn-like">
+            {% if has_liked %}❤️ Unheart{% else %}🤍 Heart Profile{% endif %}
+        </a>
+
+        {% if can_see_questionnaire %}
+            <a href="{% url 'chat_room' connection.id %}" class="btn btn-chat">💬 Open Chat</a>
+        {% endif %}
+    </div>
+
+    <hr style="border-color: #334155; margin: 25px 0;">
+
+    <!-- QUESTIONNAIRE SECTION -->
+    <h2>9 Deep Questionnaire Answers</h2>
+
+    {% if can_see_questionnaire %}
+        <div class="question-box">
+            <h4>1. Relationship Goal</h4>
+            <p>{{ target_profile.q1_relationship_goal|default:"Not specified" }}</p>
+        </div>
+        <div class="question-box">
+            <h4>2. Core Values</h4>
+            <p>{{ target_profile.q2_core_values|default:"Not specified" }}</p>
+        </div>
+        <div class="question-box">
+            <h4>3. Dealbreakers</h4>
+            <p>{{ target_profile.q3_dealbreakers|default:"Not specified" }}</p>
+        </div>
+        <div class="question-box">
+            <h4>4. Love Language</h4>
+            <p>{{ target_profile.q4_love_language|default:"Not specified" }}</p>
+        </div>
+        <div class="question-box">
+            <h4>5. Lifestyle Habits</h4>
+            <p>{{ target_profile.q5_lifestyle_habits|default:"Not specified" }}</p>
+        </div>
+        <div class="question-box">
+            <h4>6. Conflict Resolution</h4>
+            <p>{{ target_profile.q6_conflict_resolution|default:"Not specified" }}</p>
+        </div>
+        <div class="question-box">
+            <h4>7. Future Vision</h4>
+            <p>{{ target_profile.q7_future_vision|default:"Not specified" }}</p>
+        </div>
+        <div class="question-box">
+            <h4>8. Partner Personality</h4>
+            <p>{{ target_profile.q8_partner_personality|default:"Not specified" }}</p>
+        </div>
+        <div class="question-box">
+            <h4>9. Communication Preference</h4>
+            <p>{{ target_profile.q9_communication_preference|default:"Not specified" }}</p>
+        </div>
+
+        <form method="POST" action="{% url 'share_pin' target_profile.id %}" style="margin-top: 20px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="disable">
+            <button type="submit" style="background: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">Disable Connection</button>
+        </form>
+    {% else %}
+        <div class="locked-notice">
+            🔒 <strong>Questionnaire Answers are Locked</strong>
+            <p style="font-size: 14px; color: #94a3b8;">Enter {{ target_profile.full_name }}'s Match PIN to reveal all 9 deep compatibility answers and unlock direct chat access.</p>
+
+            <form method="POST" action="{% url 'share_pin' target_profile.id %}" style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="share">
+                <input type="text" name="pin_code" placeholder="Enter Match PIN" required>
+                <button type="submit" class="btn btn-chat">Unlock Profile</button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

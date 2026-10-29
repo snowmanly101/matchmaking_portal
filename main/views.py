@@ -174,7 +174,6 @@ def verify_email_view(request):
       if 'pending_user_id' in request.session:
         del request.session['pending_user_id']
 
-      # Check if they have at least 2 photos before proceeding
       if not profile.has_enough_photos():
         return redirect('upload_photos')
       return redirect('questionnaire_step', step=1)
@@ -346,10 +345,54 @@ def portal_view(request):
 
   update_last_seen(profile)
 
-  # Fetch all active profiles (with >= 2 photos) excluding current user
-  all_users = MatchProfile.objects.exclude(id=profile.id).filter(is_locked=False)
+  # Ensure user has a match pin
+  if not profile.match_pin:
+    profile.generate_pin()
 
-  # Filter by search query (name, occupation, country, bio)
+  # Handle Bio update from the portal dashboard
+  if request.method == 'POST' and 'update_bio' in request.POST:
+    new_bio = request.POST.get('bio')
+    if new_bio:
+      profile.bio = new_bio
+      profile.save()
+      messages.success(request, 'Your bio has been updated successfully!')
+      return redirect('portal')
+
+  # Handle direct PIN connection via top-right dropdown form
+  if request.method == 'POST' and 'partner_pin' in request.POST:
+    partner_pin = request.POST.get('partner_pin')
+    partner = MatchProfile.objects.filter(match_pin=partner_pin).first()
+
+    if partner and partner != profile:
+      connection = MatchConnection.objects.filter(
+          (models.Q(user1=profile) & models.Q(user2=partner))
+          | (models.Q(user1=partner) & models.Q(user2=profile))
+      ).first()
+
+      if not connection:
+        connection = MatchConnection.objects.create(
+            user1=profile, user2=partner, shared_pin=partner_pin, is_active=True
+        )
+      else:
+        connection.is_active = True
+        connection.shared_pin = partner_pin
+        connection.save()
+
+      messages.success(
+          request,
+          f'Successfully connected with {partner.full_name}! You can now chat'
+          ' and view full profiles.',
+      )
+      return redirect('chat_room', connection_id=connection.id)
+    else:
+      messages.error(request, 'Invalid Match PIN. Please check and try again.')
+
+  # Fetch all active profiles excluding current user
+  all_users = MatchProfile.objects.exclude(id=profile.id).filter(
+      is_locked=False
+  )
+
+  # Search filter
   query = request.GET.get('q', '')
   gender_filter = request.GET.get('gender', '')
 
@@ -364,10 +407,9 @@ def portal_view(request):
   if gender_filter:
     all_users = all_users.filter(gender=gender_filter)
 
-  # Filter out users who don't have at least 2 photos
   active_users = [u for u in all_users if u.has_enough_photos()]
 
-  # Calculate online user count (active in last 5 minutes)
+  # Online user count (active within last 5 minutes)
   five_mins_ago = timezone.now() - timedelta(minutes=5)
   online_count = MatchProfile.objects.filter(
       last_seen__gte=five_mins_ago
@@ -375,7 +417,8 @@ def portal_view(request):
 
   # Active chat connections
   connections = MatchConnection.objects.filter(
-      (models.Q(user1=profile) | models.Q(user2=profile)) & models.Q(is_active=True)
+      (models.Q(user1=profile) | models.Q(user2=profile))
+      & models.Q(is_active=True)
   )
 
   return render(
@@ -401,18 +444,17 @@ def view_profile_detail(request, profile_id):
   target_profile = get_object_or_404(MatchProfile, id=profile_id)
   update_last_seen(profile)
 
-  # Check if current user liked target profile
-  has_liked = ProfileLike.objects.filter(
-      from_user=profile, to_user=target_profile
-  ).exists()
-
-  # Check existing connection / PIN sharing status
+  # Check connection / PIN sharing status
   connection = MatchConnection.objects.filter(
       (models.Q(user1=profile) & models.Q(user2=target_profile))
       | (models.Q(user1=target_profile) & models.Q(user2=profile))
   ).first()
 
-  can_chat_and_see_full = connection and connection.is_active
+  can_see_questionnaire = connection and connection.is_active
+
+  has_liked = ProfileLike.objects.filter(
+      from_user=profile, to_user=target_profile
+  ).exists()
 
   return render(
       request,
@@ -422,7 +464,7 @@ def view_profile_detail(request, profile_id):
           'target_profile': target_profile,
           'has_liked': has_liked,
           'connection': connection,
-          'can_chat_and_see_full': can_chat_and_see_full,
+          'can_see_questionnaire': can_see_questionnaire,
       },
   )
 
@@ -458,7 +500,7 @@ def share_pin_view(request, profile_id):
   target_profile = get_object_or_404(MatchProfile, id=profile_id)
 
   if request.method == 'POST':
-    action = request.POST.get('action')  # 'share' or 'disable'
+    action = request.POST.get('action')
     entered_pin = request.POST.get('pin_code')
 
     connection = MatchConnection.objects.filter(
@@ -470,19 +512,27 @@ def share_pin_view(request, profile_id):
       if connection:
         connection.is_active = False
         connection.save()
-        messages.info(request, 'Chat and shared profile access disabled.')
+        messages.info(
+            request, 'Chat and shared profile questionnaire access disabled.'
+        )
     elif action == 'share':
-      # Verify PIN matches target profile's match_pin or entered pin
       if entered_pin and entered_pin.strip() == str(target_profile.match_pin):
         if not connection:
           connection = MatchConnection.objects.create(
-              user1=profile, user2=target_profile, shared_pin=entered_pin, is_active=True
+              user1=profile,
+              user2=target_profile,
+              shared_pin=entered_pin,
+              is_active=True,
           )
         else:
           connection.is_active = True
           connection.shared_pin = entered_pin
           connection.save()
-        messages.success(request, 'PIN shared successfully! You can now chat and see full profiles.')
+        messages.success(
+            request,
+            'PIN shared successfully! You can now chat and view full'
+            ' questionnaires.',
+        )
         return redirect('chat_room', connection_id=connection.id)
       else:
         messages.error(request, 'Invalid Match PIN entered.')
