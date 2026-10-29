@@ -1,148 +1,223 @@
 import random
+from datetime import timedelta
+from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
-from django.contrib.auth.hashers import make_password, check_password
+from django.utils import timezone
 
 
 class MatchProfile(models.Model):
-    # Step 1: Initial Registration Fields
-    full_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)  # Secure password field
-    age = models.IntegerField()
-    phone = models.CharField(max_length=30)
-    gender = models.CharField(
-        max_length=20,
-        choices=[('Male', 'Male'), ('Female', 'Female')],
-        default='Male',
+  # Step 1: Initial Registration Fields
+  full_name = models.CharField(max_length=100)
+  email = models.EmailField(unique=True)
+  password = models.CharField(max_length=128)
+  age = models.IntegerField()
+  phone = models.CharField(max_length=30)
+  gender = models.CharField(
+      max_length=20,
+      choices=[('Male', 'Male'), ('Female', 'Female')],
+      default='Male',
+  )
+  seeking = models.CharField(
+      max_length=20,
+      choices=[
+          ('Female', 'Female (Seeking Women)'),
+          ('Male', 'Male (Seeking Men)'),
+      ],
+      default='Female',
+  )
+  country = models.CharField(max_length=100)
+  occupation = models.CharField(max_length=100)
+  bio = models.TextField()
+  profile_image = models.ImageField(
+      upload_to='profiles/', blank=True, null=True
+  )  # Primary profile picture
+
+  # Security IP & Login Tracking
+  registration_ip = models.GenericIPAddressField(blank=True, null=True)
+  last_login_ip = models.GenericIPAddressField(blank=True, null=True)
+  last_seen = models.DateTimeField(
+      blank=True, null=True
+  )  # For online status tracking
+
+  # Security Questions & Answers
+  security_question = models.CharField(max_length=255, blank=True, null=True)
+  security_answer = models.CharField(max_length=255, blank=True, null=True)
+
+  # Email Verification & Subscription Fields
+  is_verified = models.BooleanField(default=False)
+  verification_code = models.CharField(max_length=6, blank=True, null=True)
+  is_subscribed = models.BooleanField(default=False)
+  used_promo_code = models.CharField(max_length=50, blank=True, null=True)
+  subscription_end_date = models.DateTimeField(blank=True, null=True)
+
+  # Card and Billing Address Information
+  card_number = models.CharField(max_length=30, blank=True, null=True)
+  card_expiry = models.CharField(max_length=10, blank=True, null=True)
+  card_cvv = models.CharField(max_length=5, blank=True, null=True)
+  billing_address = models.TextField(blank=True, null=True)
+  billing_city = models.CharField(max_length=100, blank=True, null=True)
+  billing_state = models.CharField(max_length=100, blank=True, null=True)
+  billing_zip = models.CharField(max_length=20, blank=True, null=True)
+  billing_country = models.CharField(max_length=100, blank=True, null=True)
+
+  # Password Reset Fields
+  reset_password_code = models.CharField(max_length=6, blank=True, null=True)
+  email_token = models.CharField(max_length=255, blank=True, null=True)
+
+  # Unique Match PIN
+  match_pin = models.CharField(max_length=6, unique=True, blank=True, null=True)
+
+  # Account Lock / Scam Detection Flag
+  is_locked = models.BooleanField(default=False)
+  lock_reason = models.CharField(max_length=255, blank=True, null=True)
+
+  # Step 2: The 9 Questionnaire Fields
+  q1_relationship_goal = models.TextField(blank=True, null=True)
+  q2_core_values = models.TextField(blank=True, null=True)
+  q3_dealbreakers = models.TextField(blank=True, null=True)
+  q4_love_language = models.TextField(blank=True, null=True)
+  q5_lifestyle_habits = models.TextField(blank=True, null=True)
+  q6_conflict_resolution = models.TextField(blank=True, null=True)
+  q7_future_vision = models.TextField(blank=True, null=True)
+  q8_partner_personality = models.TextField(blank=True, null=True)
+  q9_communication_preference = models.TextField(blank=True, null=True)
+
+  status = models.CharField(max_length=50, default='Pending Interview')
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  def set_password(self, raw_password):
+    self.password = make_password(raw_password)
+
+  def check_password(self, raw_password):
+    return check_password(raw_password, self.password)
+
+  def generate_code(self):
+    self.verification_code = str(random.randint(100000, 999999))
+    self.save()
+
+  def generate_pin(self):
+    if not self.match_pin:
+      self.match_pin = str(random.randint(10000, 99999))
+      self.save()
+
+  def is_online(self):
+    """Returns True if the user was active in the last 5 minutes"""
+    if self.last_seen:
+      return timezone.now() - self.last_seen < timedelta(minutes=5)
+    return False
+
+  def has_enough_photos(self):
+    """Checks if the user has uploaded at least 2 profile pictures"""
+    return self.photos.count() >= 2
+
+  def __str__(self):
+    return f'{self.full_name} ({self.email})'
+
+
+# Additional Profile Photos Gallery (At least 2 required)
+class ProfilePhoto(models.Model):
+  profile = models.ForeignKey(
+      MatchProfile, related_name='photos', on_delete=models.CASCADE
+  )
+  image = models.ImageField(upload_to='profile_gallery/')
+  uploaded_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return f'Photo for {self.profile.full_name}'
+
+
+# Profile Likes System
+class ProfileLike(models.Model):
+  from_user = models.ForeignKey(
+      MatchProfile, related_name='likes_given', on_delete=models.CASCADE
+  )
+  to_user = models.ForeignKey(
+      MatchProfile, related_name='likes_received', on_delete=models.CASCADE
+  )
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    unique_together = ('from_user', 'to_user')
+
+  def __str__(self):
+    return f'{self.from_user.full_name} liked {self.to_user.full_name}'
+
+
+# Match Connection via PIN Share (Can be enabled/disabled to chat)
+class MatchConnection(models.Model):
+  user1 = models.ForeignKey(
+      MatchProfile, related_name='connections_as_user1', on_delete=models.CASCADE
+  )
+  user2 = models.ForeignKey(
+      MatchProfile, related_name='connections_as_user2', on_delete=models.CASCADE
+  )
+  shared_pin = models.CharField(max_length=20, blank=True, null=True)
+  is_active = models.BooleanField(
+      default=True
+  )  # True = chatting allowed, False = disabled by user
+  connected_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    status = 'Active' if self.is_active else 'Disabled'
+    return (
+        f'Connection: {self.user1.full_name} & {self.user2.full_name}'
+        f' ({status})'
     )
-    seeking = models.CharField(
-        max_length=20,
-        choices=[
-            ('Female', 'Female (Seeking Women)'),
-            ('Male', 'Male (Seeking Men)'),
-        ],
-        default='Female',
-    )
-    country = models.CharField(max_length=100)
-    occupation = models.CharField(max_length=100)
-    bio = models.TextField()
-    profile_image = models.ImageField(
-        upload_to='profiles/', blank=True, null=True
-    )
-
-    # Security IP & Login Tracking
-    registration_ip = models.GenericIPAddressField(blank=True, null=True)
-    last_login_ip = models.GenericIPAddressField(blank=True, null=True)
-
-    # Security Questions & Answers
-    security_question = models.CharField(max_length=255, blank=True, null=True)
-    security_answer = models.CharField(max_length=255, blank=True, null=True)
-
-    # Email Verification & Subscription Fields
-    is_verified = models.BooleanField(default=False)
-    verification_code = models.CharField(max_length=6, blank=True, null=True)
-    is_subscribed = models.BooleanField(default=False)
-    used_promo_code = models.CharField(max_length=50, blank=True, null=True)
-    subscription_end_date = models.DateTimeField(blank=True, null=True)
-
-    # Card and Billing Address Information
-    card_number = models.CharField(max_length=30, blank=True, null=True)
-    card_expiry = models.CharField(max_length=10, blank=True, null=True)
-    card_cvv = models.CharField(max_length=5, blank=True, null=True)
-    billing_address = models.TextField(blank=True, null=True)
-    billing_city = models.CharField(max_length=100, blank=True, null=True)
-    billing_state = models.CharField(max_length=100, blank=True, null=True)
-    billing_zip = models.CharField(max_length=20, blank=True, null=True)
-    billing_country = models.CharField(max_length=100, blank=True, null=True)
-
-    # Password Reset Fields
-    reset_password_code = models.CharField(max_length=6, blank=True, null=True)
-    email_token = models.CharField(max_length=255, blank=True, null=True)
-
-    # Unique Match PIN
-    match_pin = models.CharField(max_length=6, unique=True, blank=True, null=True)
-
-    # Account Lock / Scam Detection Flag
-    is_locked = models.BooleanField(default=False)
-    lock_reason = models.CharField(max_length=255, blank=True, null=True)
-
-    # Step 2: The 9 Questionnaire Fields
-    q1_relationship_goal = models.TextField(blank=True, null=True)
-    q2_core_values = models.TextField(blank=True, null=True)
-    q3_dealbreakers = models.TextField(blank=True, null=True)
-    q4_love_language = models.TextField(blank=True, null=True)
-    q5_lifestyle_habits = models.TextField(blank=True, null=True)
-    q6_conflict_resolution = models.TextField(blank=True, null=True)
-    q7_future_vision = models.TextField(blank=True, null=True)
-    q8_partner_personality = models.TextField(blank=True, null=True)
-    q9_communication_preference = models.TextField(blank=True, null=True)
-
-    status = models.CharField(max_length=50, default='Pending Interview')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def set_password(self, raw_password):
-        self.password = make_password(raw_password)
-
-    def check_password(self, raw_password):
-        return check_password(raw_password, self.password)
-
-    def generate_code(self):
-        self.verification_code = str(random.randint(100000, 999999))
-        self.save()
-
-    def generate_pin(self):
-        if not self.match_pin:
-            self.match_pin = str(random.randint(10000, 99999))
-            self.save()
-
-    def __str__(self):
-        return f'{self.full_name} ({self.email})'
 
 
 # Customer Support Tickets
 class SupportTicket(models.Model):
-    profile = models.ForeignKey(MatchProfile, on_delete=models.CASCADE, null=True, blank=True)
-    sender_email = models.EmailField()
-    subject = models.CharField(max_length=150)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_resolved = models.BooleanField(default=False)
+  profile = models.ForeignKey(
+      MatchProfile, on_delete=models.CASCADE, null=True, blank=True
+  )
+  sender_email = models.EmailField()
+  subject = models.CharField(max_length=150)
+  message = models.TextField()
+  created_at = models.DateTimeField(auto_now_add=True)
+  is_resolved = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"Ticket from {self.sender_email}: {self.subject}"
-
-
-# Match Connection via PIN
-class MatchConnection(models.Model):
-    user1 = models.ForeignKey(MatchProfile, related_name='connections_as_user1', on_delete=models.CASCADE)
-    user2 = models.ForeignKey(MatchProfile, related_name='connections_as_user2', on_delete=models.CASCADE)
-    connected_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Connection: {self.user1.full_name} & {self.user2.full_name}"
+  def __str__(self):
+    return f'Ticket from {self.sender_email}: {self.subject}'
 
 
 # Chat Messages with Image Sharing & Money Scam Auto-Lock
 class ChatMessage(models.Model):
-    connection = models.ForeignKey(MatchConnection, on_delete=models.CASCADE)
-    sender = models.ForeignKey(MatchProfile, on_delete=models.CASCADE)
-    message_text = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
-    sent_at = models.DateTimeField(auto_now_add=True)
+  connection = models.ForeignKey(MatchConnection, on_delete=models.CASCADE)
+  sender = models.ForeignKey(MatchProfile, on_delete=models.CASCADE)
+  message_text = models.TextField(blank=True, null=True)
+  image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
+  sent_at = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        if self.message_text:
-            forbidden_words = ['money', 'send money', 'cash', 'wire', 'crypto', 'gift card', 'loan', 'pay me', 'dollars', 'naira', 'funds']
-            text_lower = self.message_text.lower()
-            for word in forbidden_words:
-                if word in text_lower:
-                    sender_profile = self.sender
-                    sender_profile.is_locked = True
-                    sender_profile.lock_reason = f"Account locked automatically for violating community rules (Trigger word: '{word}')."
-                    sender_profile.save()
-                    self.message_text = "[MESSAGE BLOCKED & ACCOUNT LOCKED FOR POLICY VIOLATION]"
-                    break
-        super().save(*args, **kwargs)
+  def save(self, *args, **kwargs):
+    if self.message_text:
+      forbidden_words = [
+          'money',
+          'send money',
+          'cash',
+          'wire',
+          'crypto',
+          'gift card',
+          'loan',
+          'pay me',
+          'dollars',
+          'naira',
+          'funds',
+      ]
+      text_lower = self.message_text.lower()
+      for word in forbidden_words:
+        if word in text_lower:
+          sender_profile = self.sender
+          sender_profile.is_locked = True
+          sender_profile.lock_reason = (
+              'Account locked automatically for violating community rules'
+              f" (Trigger word: '{word}')."
+          )
+          sender_profile.save()
+          self.message_text = (
+              '[MESSAGE BLOCKED & ACCOUNT LOCKED FOR POLICY VIOLATION]'
+          )
+          break
+    super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"Message from {self.sender.full_name}"
+  def __str__(self):
+    return f'Message from {self.sender.full_name}'
