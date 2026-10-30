@@ -29,27 +29,49 @@
             <div class="d-flex align-items-center gap-3">
                 <!-- Inbox Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        💬 Inbox & Connections ({% if connections %}{{ connections.count }}{% else %}0{% endif %})
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-dark p-3 shadow" style="width: 340px; background: #0f172a; border: 1px solid rgba(244,63,94,0.3);">
-                        
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                        💬 Inbox & Connections 
                         {% if pending_requests %}
-                            <li><h6 class="text-warning mb-2">📩 Pending PIN Requests</h6></li>
+                            <span class="badge bg-warning text-dark ms-1">({{ pending_requests.count }})</span>
+                        {% else %}
+                            <span class="badge bg-secondary ms-1">({% if connections %}{{ connections.count }}{% else %}0{% endif %})</span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark p-3 shadow dropdown-menu-end" style="width: 360px; background: #0f172a; border: 1px solid rgba(244,63,94,0.3);">
+                        
+                        <!-- PENDING INCOMING PIN REQUESTS -->
+                        <li><h6 class="text-warning mb-2 fw-bold border-bottom pb-2">📩 Incoming PIN Requests</h6></li>
+                        {% if pending_requests %}
                             {% for req in pending_requests %}
-                                <li class="bg-dark p-2 rounded mb-2 border border-warning d-flex justify-content-between align-items-center">
-                                    <span class="small text-white">{{ req.user1.full_name }}</span>
-                                    <form method="POST" class="m-0">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="approve_connection_id" value="{{ req.id }}">
-                                        <button type="submit" class="btn btn-success btn-sm py-0">Approve</button>
-                                    </form>
+                                <li class="bg-dark p-3 rounded mb-2 border border-warning">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong class="text-white">{{ req.user1.full_name }}</strong>
+                                        <span class="badge bg-danger">PIN: {{ req.shared_pin }}</span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <!-- APPROVE FORM -->
+                                        <form method="POST" class="w-50 m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="approve_connection_id" value="{{ req.id }}">
+                                            <button type="submit" class="btn btn-success btn-sm w-100 py-1 fw-bold">Approve</button>
+                                        </form>
+                                        <!-- DECLINE FORM -->
+                                        <form method="POST" class="w-50 m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="decline_connection_id" value="{{ req.id }}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-1">Decline</button>
+                                        </form>
+                                    </div>
                                 </li>
                             {% endfor %}
-                            <li><hr class="dropdown-divider border-secondary"></li>
+                        {% else %}
+                            <li><small class="text-muted d-block mb-3">No pending PIN requests right now.</small></li>
                         {% endif %}
 
-                        <li><h6 class="text-white mb-2">Active Conversations</h6></li>
+                        <li><hr class="dropdown-divider border-secondary my-3"></li>
+
+                        <!-- ACTIVE CONVERSATIONS -->
+                        <li><h6 class="text-white mb-2 fw-bold">Active Conversations</h6></li>
                         {% if connections %}
                             {% for conn in connections %}
                                 <li>
@@ -68,7 +90,10 @@
                         {% else %}
                             <li><small class="text-muted d-block mb-2">No active conversations yet.</small></li>
                         {% endif %}
+                        
                         <li><hr class="dropdown-divider border-secondary"></li>
+                        
+                        <!-- MANUAL PARTNER PIN INPUT -->
                         <li>
                             <form method="POST" class="mt-2">
                                 {% csrf_token %}

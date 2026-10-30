@@ -78,7 +78,6 @@ def home_view(request):
                     request.session['pending_user_id'] = profile.id
                     return redirect('verify_email')
                 
-                # Directly send user to portal, bypassing all photo/questionnaire loops
                 return redirect('portal')
             else:
                 messages.error(request, 'Invalid email or password. Please try again.')
@@ -102,16 +101,14 @@ def home_view(request):
                     profile.registration_ip = get_client_ip(request)
                     profile.last_login_ip = get_client_ip(request)
 
-                    # Capture optional music & hobbies if submitted during registration
                     profile.favorite_music = request.POST.get('favorite_music', '')
                     profile.interests = request.POST.get('interests', '')
 
                     verification_code = str(random.randint(100000, 999999))
                     profile.verification_code = verification_code
-                    profile.is_verified = True  # Auto-verify to prevent blocks
+                    profile.is_verified = True
                     profile.save()
 
-                    # Save uploaded profile picture if present
                     if request.FILES.get('profile_image'):
                         profile.profile_image = request.FILES.get('profile_image')
                         profile.save()
@@ -254,7 +251,7 @@ def portal_view(request):
             )
             messages.success(request, f'PIN Request sent to {target_user.full_name}!')
         else:
-            messages.info(request, 'Connection or request already exists.')
+            messages.info(request, 'A request or connection already exists.')
         return redirect('portal')
 
     # Approve PIN Request
@@ -266,6 +263,15 @@ def portal_view(request):
             conn.save()
             messages.success(request, 'PIN Approved! Chat and full profile unlocked.')
             return redirect('chat_room', connection_id=conn.id)
+
+    # Decline PIN Request
+    if request.method == 'POST' and 'decline_connection_id' in request.POST:
+        conn_id = request.POST.get('decline_connection_id')
+        conn = get_object_or_404(MatchConnection, id=conn_id)
+        if conn.user2 == profile or conn.user1 == profile:
+            conn.delete()
+            messages.info(request, 'PIN Request declined.')
+            return redirect('portal')
 
     # Connect directly via Partner PIN
     if request.method == 'POST' and 'partner_pin' in request.POST:
@@ -292,7 +298,6 @@ def portal_view(request):
         else:
             messages.error(request, 'Invalid Match PIN.')
 
-    # Fetch ALL registered profiles except current user (No review filtering)
     all_users = MatchProfile.objects.exclude(id=profile.id).filter(is_locked=False)
 
     query = request.GET.get('q', '')
@@ -313,7 +318,6 @@ def portal_view(request):
 
     five_mins_ago = timezone.now() - timedelta(minutes=5)
     
-    # Annotate or check online status for each user
     active_users = []
     for u in all_users:
         u.is_online = u.last_seen and u.last_seen >= five_mins_ago
@@ -325,8 +329,9 @@ def portal_view(request):
         (models.Q(user1=profile) | models.Q(user2=profile)) & models.Q(is_active=True)
     )
 
+    # CRITICAL: Target incoming requests where user2 is the current profile
     pending_requests = MatchConnection.objects.filter(
-        models.Q(user2=profile) & models.Q(is_active=False)
+        user2=profile, is_active=False
     )
 
     return render(
@@ -358,7 +363,6 @@ def view_profile_detail(request, profile_id):
         | (models.Q(user1=target_profile) & models.Q(user2=profile))
     ).first()
 
-    # Profile can be viewed if approved (is_active) OR if it's the user's own profile
     can_see_questionnaire = (connection and connection.is_active) or (profile == target_profile)
 
     has_liked = ProfileLike.objects.filter(
@@ -397,7 +401,6 @@ def toggle_like_view(request, profile_id):
             ProfileLike.objects.create(from_user=profile, to_user=target_profile)
             messages.success(request, f'You liked {target_profile.full_name}!')
             
-            # Send email notification on like if email exists
             if target_profile.email:
                 try:
                     send_mail(
