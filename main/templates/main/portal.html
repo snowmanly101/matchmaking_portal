@@ -10,11 +10,13 @@
         body { background-color: #0b1120; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
         .brand-logo { font-weight: 700; letter-spacing: 2px; background: linear-gradient(45deg, #f43f5e, #fb7185); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .glass-card { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .badge-status { background: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.4); font-weight: 600; }
+        .badge-status { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-weight: 600; }
         .btn-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); border: none; color: white; font-weight: 600; padding: 8px 18px; border-radius: 50px; transition: all 0.3s ease; }
         .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4); color: white; }
         .user-card { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; transition: transform 0.2s; }
         .user-card:hover { transform: translateY(-5px); border-color: #f43f5e; }
+        .dot-online { height: 10px; width: 10px; background-color: #10b981; border-radius: 50%; display: inline-block; }
+        .dot-offline { height: 10px; width: 10px; background-color: #64748b; border-radius: 50%; display: inline-block; }
     </style>
 </head>
 <body>
@@ -32,7 +34,6 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-dark p-3 shadow" style="width: 340px; background: #0f172a; border: 1px solid rgba(244,63,94,0.3);">
                         
-                        <!-- Pending Incoming Requests -->
                         {% if pending_requests %}
                             <li><h6 class="text-warning mb-2">📩 Pending PIN Requests</h6></li>
                             {% for req in pending_requests %}
@@ -96,7 +97,7 @@
         {% endif %}
 
         <div class="row g-4">
-            <!-- LEFT COLUMN: Profile Details, Music & Bio Editor -->
+            <!-- LEFT COLUMN: Profile & Editor -->
             <div class="col-lg-4">
                 <div class="glass-card p-4 text-center">
                     {% if profile.profile_image %}
@@ -106,7 +107,7 @@
                     {% endif %}
                     
                     <h3 class="fw-bold text-white mb-1">{{ profile.full_name }}</h3>
-                    <span class="badge badge-status px-3 py-1 rounded-pill mb-3">{{ profile.status }}</span>
+                    <span class="badge badge-status px-3 py-1 rounded-pill mb-3">Active Member</span>
 
                     <div class="text-start p-3 rounded bg-dark border border-secondary mb-3 small">
                         <p class="mb-2"><strong>Age:</strong> <span class="text-light">{{ profile.age }} yrs</span></p>
@@ -116,20 +117,20 @@
                         <p class="mb-0"><strong>Occupation:</strong> <span class="text-light">{{ profile.occupation }}</span></p>
                     </div>
 
-                    <!-- Match PIN Display -->
+                    <!-- Match PIN -->
                     <div class="p-3 rounded-3 text-center mb-3" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(244, 63, 94, 0.3);">
                         <span class="text-secondary small d-block mb-1">Your Match PIN:</span>
                         <span class="badge bg-danger fs-4 px-3 py-2">{{ profile.match_pin }}</span>
                     </div>
 
-                    <!-- Editable Profile Interests, Music & Bio -->
+                    <!-- Editable Profile Info -->
                     <form method="POST" class="text-start">
                         {% csrf_token %}
                         <label class="form-label text-secondary small fw-bold">🎵 Favorite Music / Artists:</label>
-                        <input type="text" name="fav_music" value="{{ profile.favorite_music }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Afrobeats, R&B, Drake, Wizkid">
+                        <input type="text" name="fav_music" value="{{ profile.favorite_music }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Afrobeats, Drake">
 
                         <label class="form-label text-secondary small fw-bold">⚽ Hobbies & Likes:</label>
-                        <input type="text" name="interests" value="{{ profile.interests }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Travel, Movies, Gaming">
+                        <input type="text" name="interests" value="{{ profile.interests }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Travel, Gaming">
 
                         <label class="form-label text-secondary small fw-bold">📝 About Yourself (Bio):</label>
                         <textarea name="bio" class="form-control bg-dark text-white border-secondary mb-2" rows="3">{{ profile.bio }}</textarea>
@@ -139,7 +140,7 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Active Dating Directory & Direct PIN Requests -->
+            <!-- RIGHT COLUMN: Active Dating Directory -->
             <div class="col-lg-8">
                 <div class="glass-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -150,7 +151,7 @@
                     <!-- Search Filter -->
                     <form method="GET" class="row g-2 mb-4">
                         <div class="col-md-7">
-                            <input type="text" name="q" value="{{ query }}" class="form-control bg-dark text-white border-secondary" placeholder="Search name, country, occupation, music...">
+                            <input type="text" name="q" value="{{ query }}" class="form-control bg-dark text-white border-secondary" placeholder="Search name, music, hobbies, country...">
                         </div>
                         <div class="col-md-3">
                             <select name="gender" class="form-select bg-dark text-white border-secondary">
@@ -170,6 +171,14 @@
                             <div class="col-md-6">
                                 <div class="user-card p-3 text-center h-100 d-flex flex-column justify-content-between">
                                     <div>
+                                        <div class="d-flex justify-content-end mb-1">
+                                            {% if target.is_online %}
+                                                <span class="dot-online" title="Online"></span> <small class="text-success ms-1" style="font-size: 11px;">Online</small>
+                                            {% else %}
+                                                <span class="dot-offline" title="Offline"></span> <small class="text-muted ms-1" style="font-size: 11px;">Offline</small>
+                                            {% endif %}
+                                        </div>
+
                                         {% if target.profile_image %}
                                             <img src="{{ target.profile_image.url }}" alt="{{ target.full_name }}" class="rounded-circle mb-2 shadow" style="width: 85px; height: 85px; object-fit: cover; border: 2px solid #f43f5e;">
                                         {% else %}
@@ -181,6 +190,9 @@
 
                                         {% if target.favorite_music %}
                                             <p class="text-warning small mb-1">🎵 {{ target.favorite_music }}</p>
+                                        {% endif %}
+                                        {% if target.interests %}
+                                            <p class="text-info small mb-1">⚽ {{ target.interests }}</p>
                                         {% endif %}
 
                                         <p class="text-light small fst-italic text-truncate px-2">"{{ target.bio }}"</p>
@@ -198,7 +210,7 @@
                             </div>
                         {% empty %}
                             <div class="col-12 text-center py-5">
-                                <p class="text-secondary">No matching active profiles found.</p>
+                                <p class="text-secondary">No other registered profiles found yet.</p>
                             </div>
                         {% endfor %}
                     </div>
