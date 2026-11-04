@@ -180,37 +180,60 @@
                     </div>
 
                     <!-- Advanced Preference Filters Form -->
-                    <form method="GET" class="row g-2 mb-4 p-3 rounded bg-dark border border-secondary">
+                    <form method="GET" class="row g-3 mb-4 p-3 rounded bg-dark border border-secondary">
                         <div class="col-12">
-                            <span class="text-rose small fw-bold mb-2 d-block">⚙️ Advanced Preference Filters</span>
+                            <span class="text-rose small fw-bold d-block">⚙️ Advanced Preference Filters</span>
                         </div>
+
+                        <!-- Keyword Search -->
                         <div class="col-md-4">
-                            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Search keywords...">
+                            <label class="form-label text-secondary small fw-bold">Search Keywords</label>
+                            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Name, bio, music, etc.">
                         </div>
+
+                        <!-- City Filter -->
                         <div class="col-md-4">
-                            <input type="text" name="city" value="{{ city_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Filter by City...">
+                            <label class="form-label text-secondary small fw-bold">Filter by City</label>
+                            <input type="text" name="city" value="{{ city_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="e.g. Ibadan, Ijebu Ode">
                         </div>
+
+                        <!-- Gender Filter -->
                         <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">Gender</label>
                             <select name="gender" class="form-select bg-dark text-white border-secondary form-select-sm">
                                 <option value="">All Genders</option>
                                 <option value="Female" {% if gender_filter == 'Female' %}selected{% endif %}>Female</option>
                                 <option value="Male" {% if gender_filter == 'Male' %}selected{% endif %}>Male</option>
                             </select>
                         </div>
+
+                        <!-- Min Age -->
                         <div class="col-md-3">
-                            <input type="number" name="age_min" value="{{ age_min|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Min Age">
+                            <label class="form-label text-secondary small fw-bold">Min Age</label>
+                            <input type="number" name="age_min" value="{{ age_min|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="e.g. 18">
                         </div>
+
+                        <!-- Max Age -->
                         <div class="col-md-3">
-                            <input type="number" name="age_max" value="{{ age_max|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Max Age">
+                            <label class="form-label text-secondary small fw-bold">Max Age</label>
+                            <input type="number" name="age_max" value="{{ age_max|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="e.g. 50">
                         </div>
+
+                        <!-- Relationship Goal -->
                         <div class="col-md-3">
-                            <input type="text" name="goal" value="{{ goal_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Relationship Goal">
+                            <label class="form-label text-secondary small fw-bold">Relationship Goal</label>
+                            <input type="text" name="goal" value="{{ goal_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="e.g. Marriage, Dating">
                         </div>
+
+                        <!-- Lifestyle Habit -->
                         <div class="col-md-3">
-                            <input type="text" name="lifestyle" value="{{ lifestyle_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Lifestyle Habit">
+                            <label class="form-label text-secondary small fw-bold">Lifestyle Habit</label>
+                            <input type="text" name="lifestyle" value="{{ lifestyle_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="e.g. Non-smoker">
                         </div>
-                        <div class="col-12 mt-2">
-                            <button type="submit" class="btn btn-rose btn-sm w-100">Apply Filters & Search</button>
+
+                        <!-- Submit Button -->
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-rose btn-sm w-100 fw-bold py-2">Apply Filters & Search</button>
                         </div>
                     </form>
 
