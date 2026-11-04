@@ -29,6 +29,7 @@ from .models import (
     ChatMessage,
     ProfilePhoto,
     ProfileLike,
+    Notification,
 )
 
 
@@ -44,6 +45,46 @@ def get_client_ip(request):
 def update_last_seen(profile):
   profile.last_seen = timezone.now()
   profile.save(update_fields=['last_seen'])
+
+
+def create_bot_welcome_message(new_user):
+  """Creates the official platform bot and sends welcome guidance."""
+  bot_profile, created = MatchProfile.objects.get_or_create(
+      email='bot@auramatch.forum',
+      defaults={
+          'full_name': '🤖 AuraMatch Guide',
+          'age': 25,
+          'occupation': 'Official Platform Guide',
+          'bio': 'I am your automated guide to help you navigate AuraMatch!',
+          'gender': 'Female',
+          'seeking': 'Female',
+          'country': 'Nigeria',
+          'is_verified': True,
+      },
+  )
+  if not bot_profile.match_pin:
+    bot_profile.generate_pin()
+
+  conn, _ = MatchConnection.objects.get_or_create(
+      user1=bot_profile,
+      user2=new_user,
+      defaults={'shared_pin': 'AUTO', 'is_active': True},
+  )
+
+  if not ChatMessage.objects.filter(connection=conn).exists():
+    ChatMessage.objects.create(
+        connection=conn,
+        sender=bot_profile,
+        message_text=(
+            f'Welcome to AuraMatch, {new_user.full_name}! 👋\n\n'
+            'Here is how our platform operates:\n'
+            '1. Complete your questionnaire and upload gallery photos.\n'
+            '2. Request a PIN from matches you like or connect directly using'
+            ' their Match PIN.\n'
+            '3. Once connected, full profiles and direct chat unlock!\n\n'
+            'Feel free to explore the Discovery Deck.'
+        ),
+    )
 
 
 def home_view(request):
@@ -122,6 +163,8 @@ def home_view(request):
           if request.FILES.get('profile_image'):
             profile.profile_image = request.FILES.get('profile_image')
             profile.save()
+
+          create_bot_welcome_message(profile)
 
           request.session['user_id'] = profile.id
           messages.success(
@@ -283,6 +326,15 @@ def portal_view(request):
           shared_pin=profile.match_pin,
           is_active=False,
       )
+      Notification.objects.create(
+          user=target_user,
+          sender=profile,
+          notification_type='pin',
+          title='🔑 New PIN Request',
+          message=(
+              f'{profile.full_name} requested to connect with your Match PIN!'
+          ),
+      )
       messages.success(request, f'PIN Request sent to {target_user.full_name}!')
     else:
       messages.info(request, 'A request or connection already exists.')
@@ -397,6 +449,10 @@ def portal_view(request):
       user2=profile, is_active=False
   )
 
+  notifications = Notification.objects.filter(user=profile).order_by(
+      '-created_at'
+  )[:10]
+
   return render(
       request,
       'main/portal.html',
@@ -405,6 +461,7 @@ def portal_view(request):
           'active_users': active_users,
           'connections': active_connections,
           'pending_requests': pending_requests,
+          'notifications': notifications,
           'online_count': online_count,
           'query': query,
           'gender_filter': gender_filter,
@@ -425,6 +482,15 @@ def view_profile_detail(request, profile_id):
   profile = get_object_or_404(MatchProfile, id=user_id)
   target_profile = get_object_or_404(MatchProfile, id=profile_id)
   update_last_seen(profile)
+
+  if profile != target_profile:
+    Notification.objects.create(
+        user=target_profile,
+        sender=profile,
+        notification_type='view',
+        title='👀 Profile View',
+        message=f'{profile.full_name} viewed your profile!',
+    )
 
   connection = MatchConnection.objects.filter(
       (models.Q(user1=profile) & models.Q(user2=target_profile))
@@ -469,24 +535,14 @@ def toggle_like_view(request, profile_id):
       messages.info(request, f'Unliked {target_profile.full_name}.')
     else:
       ProfileLike.objects.create(from_user=profile, to_user=target_profile)
+      Notification.objects.create(
+          user=target_profile,
+          sender=profile,
+          notification_type='like',
+          title='❤️ New Profile Like',
+          message=f'{profile.full_name} liked your profile!',
+      )
       messages.success(request, f'You liked {target_profile.full_name}!')
-
-      if target_profile.email:
-        try:
-          send_mail(
-              'Someone liked your profile on AuraMatch!',
-              (
-                  f'{profile.full_name} liked your profile. Log in to check'
-                  ' them out!'
-              ),
-              getattr(
-                  settings, 'DEFAULT_FROM_EMAIL', 'noreply@auramatch.forum'
-              ),
-              [target_profile.email],
-              fail_silently=True,
-          )
-        except Exception:
-          pass
 
   return redirect('view_profile', profile_id=target_profile.id)
 
@@ -526,6 +582,16 @@ def share_pin_view(request, profile_id):
           connection.is_active = True
           connection.shared_pin = entered_pin
           connection.save()
+
+        Notification.objects.create(
+            user=target_profile,
+            sender=profile,
+            notification_type='pin',
+            title='🎉 PIN Connected',
+            message=(
+                f'{profile.full_name} entered your Match PIN and unlocked chat!'
+            ),
+        )
         messages.success(
             request, 'PIN Approved! Full profile and chat unlocked.'
         )
@@ -585,7 +651,7 @@ def chat_room_view(request, connection_id):
 
 
 def terms_view(request):
-  return register(request, 'main/terms.html')
+  return render(request, 'main/terms.html')
 
 
 def logout_view(request):

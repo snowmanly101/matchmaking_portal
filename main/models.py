@@ -167,6 +167,31 @@ class MatchConnection(models.Model):
     )
 
 
+# In-App Notification System
+class Notification(models.Model):
+  user = models.ForeignKey(
+      MatchProfile, related_name='notifications', on_delete=models.CASCADE
+  )
+  sender = models.ForeignKey(
+      MatchProfile, on_delete=models.SET_NULL, null=True, blank=True
+  )
+  notification_type = models.CharField(
+      max_length=50,
+      choices=[
+          ('like', 'Profile Like'),
+          ('view', 'Profile View'),
+          ('pin', 'PIN Request'),
+      ],
+  )
+  title = models.CharField(max_length=150)
+  message = models.TextField()
+  is_read = models.BooleanField(default=False)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return f'Notification for {self.user.full_name}: {self.title}'
+
+
 # Customer Support Tickets
 class SupportTicket(models.Model):
   profile = models.ForeignKey(
