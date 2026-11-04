@@ -175,27 +175,42 @@
             <div class="col-lg-8">
                 <div class="glass-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                        <h4 class="fw-bold text-white m-0">Explore Matches</h4>
+                        <h4 class="fw-bold text-white m-0">🔥 Discovery Card Deck</h4>
                         <span class="badge bg-success px-3 py-2 rounded-pill">🟢 {{ online_count }} Users Online</span>
                     </div>
 
-                    <!-- Search & Location Filter -->
-                    <form method="GET" class="row g-2 mb-4">
+                    <!-- Advanced Preference Filters Form -->
+                    <form method="GET" class="row g-2 mb-4 p-3 rounded bg-dark border border-secondary">
+                        <div class="col-12">
+                            <span class="text-rose small fw-bold mb-2 d-block">⚙️ Advanced Preference Filters</span>
+                        </div>
                         <div class="col-md-4">
-                            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark text-white border-secondary" placeholder="Search keywords...">
+                            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Search keywords...">
                         </div>
-                        <div class="col-md-3">
-                            <input type="text" name="city" value="{{ city_filter|default:'' }}" class="form-control bg-dark text-white border-secondary" placeholder="Filter by City...">
+                        <div class="col-md-4">
+                            <input type="text" name="city" value="{{ city_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Filter by City...">
                         </div>
-                        <div class="col-md-3">
-                            <select name="gender" class="form-select bg-dark text-white border-secondary">
+                        <div class="col-md-4">
+                            <select name="gender" class="form-select bg-dark text-white border-secondary form-select-sm">
                                 <option value="">All Genders</option>
                                 <option value="Female" {% if gender_filter == 'Female' %}selected{% endif %}>Female</option>
                                 <option value="Male" {% if gender_filter == 'Male' %}selected{% endif %}>Male</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-rose w-100">Search</button>
+                        <div class="col-md-3">
+                            <input type="number" name="age_min" value="{{ age_min|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Min Age">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" name="age_max" value="{{ age_max|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Max Age">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="goal" value="{{ goal_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Relationship Goal">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="lifestyle" value="{{ lifestyle_filter|default:'' }}" class="form-control bg-dark text-white border-secondary form-control-sm" placeholder="Lifestyle Habit">
+                        </div>
+                        <div class="col-12 mt-2">
+                            <button type="submit" class="btn btn-rose btn-sm w-100">Apply Filters & Search</button>
                         </div>
                     </form>
 
@@ -217,6 +232,15 @@
                                             <img src="{{ target.profile_image.url }}" alt="{{ target.full_name }}" class="rounded-circle mb-2 shadow" style="width: 85px; height: 85px; object-fit: cover; border: 2px solid #f43f5e;">
                                         {% else %}
                                             <img src="https://via.placeholder.com/85" alt="Profile" class="rounded-circle mb-2 shadow" style="width: 85px; height: 85px; object-fit: cover; border: 2px solid #f43f5e;">
+                                        {% endif %}
+
+                                        <!-- Gallery Thumbnails Preview -->
+                                        {% if target.photos.all %}
+                                            <div class="d-flex justify-content-center gap-1 mb-2">
+                                                {% for photo in target.photos.all|slice:":3" %}
+                                                    <img src="{{ photo.image.url }}" class="rounded" style="width: 30px; height: 30px; object-fit: cover;" alt="Gallery">
+                                                {% endfor %}
+                                            </div>
                                         {% endif %}
                                         
                                         <h5 class="fw-bold text-white mb-1">{{ target.full_name }}, {{ target.age }}</h5>
@@ -244,7 +268,7 @@
                             </div>
                         {% empty %}
                             <div class="col-12 text-center py-5">
-                                <p class="text-secondary">No other registered profiles found matching your search.</p>
+                                <p class="text-secondary">No profiles found matching your advanced preferences.</p>
                             </div>
                         {% endfor %}
                     </div>

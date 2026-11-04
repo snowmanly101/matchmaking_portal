@@ -341,6 +341,10 @@ def portal_view(request):
   query = request.GET.get('q', '')
   gender_filter = request.GET.get('gender', '')
   city_filter = request.GET.get('city', '')
+  age_min = request.GET.get('age_min', '')
+  age_max = request.GET.get('age_max', '')
+  goal_filter = request.GET.get('goal', '')
+  lifestyle_filter = request.GET.get('lifestyle', '')
 
   if query:
     all_users = all_users.filter(
@@ -359,6 +363,18 @@ def portal_view(request):
 
   if city_filter:
     all_users = all_users.filter(city__icontains=city_filter)
+
+  if age_min:
+    all_users = all_users.filter(age__gte=age_min)
+
+  if age_max:
+    all_users = all_users.filter(age__lte=age_max)
+
+  if goal_filter:
+    all_users = all_users.filter(q1_relationship_goal__icontains=goal_filter)
+
+  if lifestyle_filter:
+    all_users = all_users.filter(q5_lifestyle_habits__icontains=lifestyle_filter)
 
   five_mins_ago = timezone.now() - timedelta(minutes=5)
 
@@ -392,6 +408,10 @@ def portal_view(request):
           'query': query,
           'gender_filter': gender_filter,
           'city_filter': city_filter,
+          'age_min': age_min,
+          'age_max': age_max,
+          'goal_filter': goal_filter,
+          'lifestyle_filter': lifestyle_filter,
       },
   )
 
