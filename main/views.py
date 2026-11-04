@@ -245,6 +245,8 @@ def portal_view(request):
     new_bio = request.POST.get('bio')
     fav_music = request.POST.get('fav_music')
     interests = request.POST.get('interests')
+    city = request.POST.get('city')
+    state = request.POST.get('state')
 
     if new_bio is not None:
       profile.bio = new_bio
@@ -252,6 +254,10 @@ def portal_view(request):
       profile.favorite_music = fav_music
     if interests is not None:
       profile.interests = interests
+    if city is not None:
+      profile.city = city
+    if state is not None:
+      profile.state = state
 
     profile.save()
     messages.success(
@@ -334,12 +340,15 @@ def portal_view(request):
 
   query = request.GET.get('q', '')
   gender_filter = request.GET.get('gender', '')
+  city_filter = request.GET.get('city', '')
 
   if query:
     all_users = all_users.filter(
         models.Q(full_name__icontains=query)
         | models.Q(occupation__icontains=query)
         | models.Q(country__icontains=query)
+        | models.Q(city__icontains=query)
+        | models.Q(state__icontains=query)
         | models.Q(bio__icontains=query)
         | models.Q(favorite_music__icontains=query)
         | models.Q(interests__icontains=query)
@@ -347,6 +356,9 @@ def portal_view(request):
 
   if gender_filter:
     all_users = all_users.filter(gender=gender_filter)
+
+  if city_filter:
+    all_users = all_users.filter(city__icontains=city_filter)
 
   five_mins_ago = timezone.now() - timedelta(minutes=5)
 
@@ -379,6 +391,7 @@ def portal_view(request):
           'online_count': online_count,
           'query': query,
           'gender_filter': gender_filter,
+          'city_filter': city_filter,
       },
   )
 
@@ -555,5 +568,6 @@ def terms_view(request):
 
 
 def logout_view(request):
+  request.session.load()
   request.session.flush()
   return redirect('home')

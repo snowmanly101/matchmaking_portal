@@ -26,6 +26,8 @@ class MatchProfile(models.Model):
       default='Female',
   )
   country = models.CharField(max_length=100)
+  state = models.CharField(max_length=100, blank=True, null=True)
+  city = models.CharField(max_length=100, blank=True, null=True)
   occupation = models.CharField(max_length=100)
   bio = models.TextField()
   profile_image = models.ImageField(

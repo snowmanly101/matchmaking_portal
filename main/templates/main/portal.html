@@ -138,7 +138,7 @@
                         <p class="mb-2"><strong>Age:</strong> <span class="text-light">{{ profile.age }} yrs</span></p>
                         <p class="mb-2"><strong>Sex/Gender:</strong> <span class="text-light">{{ profile.gender }}</span></p>
                         <p class="mb-2"><strong>Seeking:</strong> <span class="text-light">{{ profile.seeking }}</span></p>
-                        <p class="mb-2"><strong>Country:</strong> <span class="text-light">{{ profile.country }}</span></p>
+                        <p class="mb-2"><strong>Location:</strong> <span class="text-light">{% if profile.city %}{{ profile.city }}, {% endif %}{% if profile.state %}{{ profile.state }}, {% endif %}{{ profile.country }}</span></p>
                         <p class="mb-0"><strong>Occupation:</strong> <span class="text-light">{{ profile.occupation }}</span></p>
                     </div>
 
@@ -151,11 +151,17 @@
                     <!-- Editable Profile Info -->
                     <form method="POST" class="text-start">
                         {% csrf_token %}
+                        <label class="form-label text-secondary small fw-bold">🏙️ City:</label>
+                        <input type="text" name="city" value="{{ profile.city|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Ibadan">
+
+                        <label class="form-label text-secondary small fw-bold">🗺️ State / Region:</label>
+                        <input type="text" name="state" value="{{ profile.state|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Oyo State">
+
                         <label class="form-label text-secondary small fw-bold">🎵 Favorite Music / Artists:</label>
-                        <input type="text" name="fav_music" value="{{ profile.favorite_music }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Afrobeats, Drake">
+                        <input type="text" name="fav_music" value="{{ profile.favorite_music|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Afrobeats, Drake">
 
                         <label class="form-label text-secondary small fw-bold">⚽ Hobbies & Likes:</label>
-                        <input type="text" name="interests" value="{{ profile.interests }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Travel, Gaming">
+                        <input type="text" name="interests" value="{{ profile.interests|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Travel, Gaming">
 
                         <label class="form-label text-secondary small fw-bold">📝 About Yourself (Bio):</label>
                         <textarea name="bio" class="form-control bg-dark text-white border-secondary mb-2" rows="3">{{ profile.bio }}</textarea>
@@ -173,10 +179,13 @@
                         <span class="badge bg-success px-3 py-2 rounded-pill">🟢 {{ online_count }} Users Online</span>
                     </div>
 
-                    <!-- Search Filter -->
+                    <!-- Search & Location Filter -->
                     <form method="GET" class="row g-2 mb-4">
-                        <div class="col-md-7">
-                            <input type="text" name="q" value="{{ query }}" class="form-control bg-dark text-white border-secondary" placeholder="Search name, music, hobbies, country...">
+                        <div class="col-md-4">
+                            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark text-white border-secondary" placeholder="Search keywords...">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="city" value="{{ city_filter|default:'' }}" class="form-control bg-dark text-white border-secondary" placeholder="Filter by City...">
                         </div>
                         <div class="col-md-3">
                             <select name="gender" class="form-select bg-dark text-white border-secondary">
@@ -211,7 +220,7 @@
                                         {% endif %}
                                         
                                         <h5 class="fw-bold text-white mb-1">{{ target.full_name }}, {{ target.age }}</h5>
-                                        <p class="text-secondary small mb-1">📍 {{ target.country }} | 💼 {{ target.occupation }}</p>
+                                        <p class="text-secondary small mb-1">📍 {% if target.city %}{{ target.city }}, {% endif %}{% if target.state %}{{ target.state }}, {% endif %}{{ target.country }} | 💼 {{ target.occupation }}</p>
 
                                         {% if target.favorite_music %}
                                             <p class="text-warning small mb-1">🎵 {{ target.favorite_music }}</p>
@@ -235,7 +244,7 @@
                             </div>
                         {% empty %}
                             <div class="col-12 text-center py-5">
-                                <p class="text-secondary">No other registered profiles found yet.</p>
+                                <p class="text-secondary">No other registered profiles found matching your search.</p>
                             </div>
                         {% endfor %}
                     </div>
