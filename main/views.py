@@ -209,15 +209,35 @@ def upload_photos_view(request):
   profile = get_object_or_404(MatchProfile, id=user_id)
 
   if request.method == 'POST':
-    images = request.FILES.getlist('photos')
-    if images:
-      for img in images:
-        ProfilePhoto.objects.create(profile=profile, image=img)
-      if not profile.profile_image and profile.photos.exists():
-        profile.profile_image = profile.photos.first().image
-        profile.save()
-      messages.success(request, f'{len(images)} photo(s) uploaded successfully!')
+    # Action 1: Delete a specific gallery photo
+    if 'delete_photo_id' in request.POST:
+      photo_id = request.POST.get('delete_photo_id')
+      photo = ProfilePhoto.objects.filter(id=photo_id, profile=profile).first()
+      if photo:
+        photo.delete()
+        messages.success(request, 'Photo deleted successfully!')
       return redirect('upload_photos')
+
+    # Action 2: Change Main Profile Picture
+    elif 'main_profile_image' in request.FILES:
+      profile.profile_image = request.FILES.get('main_profile_image')
+      profile.save()
+      messages.success(request, 'Main profile picture updated successfully!')
+      return redirect('upload_photos')
+
+    # Action 3: Upload multiple gallery photos
+    elif 'photos' in request.FILES:
+      images = request.FILES.getlist('photos')
+      if images:
+        for img in images:
+          ProfilePhoto.objects.create(profile=profile, image=img)
+        if not profile.profile_image and profile.photos.exists():
+          profile.profile_image = profile.photos.first().image
+          profile.save()
+        messages.success(
+            request, f'{len(images)} photo(s) uploaded successfully!'
+        )
+        return redirect('upload_photos')
 
   return render(request, 'main/upload_photos.html', {'profile': profile})
 
