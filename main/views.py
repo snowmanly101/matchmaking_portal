@@ -167,13 +167,14 @@ def upload_photos_view(request):
 
   if request.method == 'POST':
     images = request.FILES.getlist('photos')
-    for img in images:
-      ProfilePhoto.objects.create(profile=profile, image=img)
-    if not profile.profile_image and profile.photos.exists():
-      profile.profile_image = profile.photos.first().image
-      profile.save()
-    messages.success(request, 'Photos uploaded successfully!')
-    return redirect('portal')
+    if images:
+      for img in images:
+        ProfilePhoto.objects.create(profile=profile, image=img)
+      if not profile.profile_image and profile.photos.exists():
+        profile.profile_image = profile.photos.first().image
+        profile.save()
+      messages.success(request, f'{len(images)} photo(s) uploaded successfully!')
+      return redirect('upload_photos')
 
   return render(request, 'main/upload_photos.html', {'profile': profile})
 
@@ -584,7 +585,7 @@ def chat_room_view(request, connection_id):
 
 
 def terms_view(request):
-  return render(request, 'main/terms.html')
+  return register(request, 'main/terms.html')
 
 
 def logout_view(request):
