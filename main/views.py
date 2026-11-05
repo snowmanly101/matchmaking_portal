@@ -86,7 +86,6 @@ def create_bot_welcome_message(new_user):
           'is_verified': True,
       },
   )
-  # Force bot country to United States if already created
   if bot_profile.country != 'United States':
     bot_profile.country = 'United States'
     bot_profile.save()
@@ -281,6 +280,23 @@ def portal_view(request):
   if not profile.match_pin:
     profile.generate_pin()
 
+  # AUTOMATED MONTHLY SAFETY WARNING PUSH TO MAILBOX INBOX
+  last_warning = Notification.objects.filter(
+      user=profile, notification_type='warning'
+  ).order_by('-created_at').first()
+
+  if not last_warning or (timezone.now() - last_warning.created_at) > timedelta(days=30):
+    Notification.objects.create(
+        user=profile,
+        notification_type='warning',
+        title='⚠️ Monthly Platform Safety Reminder',
+        message=(
+            'Important Security Notice: Talking about money, cash, wire transfers, '
+            'or crypto is strictly prohibited and leads to immediate permanent account locking. '
+            'Please keep all chats on AuraMatch to verify genuineness.'
+        )
+    )
+
   if request.method == 'POST' and 'update_bio' in request.POST:
     profile.bio = request.POST.get('bio', profile.bio)
     profile.city = request.POST.get('city', profile.city)
@@ -337,14 +353,13 @@ def portal_view(request):
     else:
       messages.error(request, 'Invalid Match PIN.')
 
-  # Exclude bot from discovery feed so it never appears as a card
   all_users = MatchProfile.objects.exclude(id=profile.id).exclude(email='bot@auramatch.forum').filter(is_locked=False)
   five_mins_ago = timezone.now() - timedelta(minutes=5)
   active_users = [u for u in all_users]
   online_count = MatchProfile.objects.filter(last_seen__gte=five_mins_ago).count()
   active_connections = MatchConnection.objects.filter((models.Q(user1=profile) | models.Q(user2=profile)) & models.Q(is_active=True))
   pending_requests = MatchConnection.objects.filter(user2=profile, is_active=False)
-  notifications = Notification.objects.filter(user=profile).order_by('-created_at')[:10]
+  notifications = Notification.objects.filter(user=profile).order_by('-created_at')[:15]
 
   return render(request, 'main/portal.html', {
       'profile': profile,
