@@ -1,6 +1,7 @@
 import os
 import random
 import uuid
+import requests
 from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
@@ -32,6 +33,32 @@ from .models import (
     Notification,
 )
 
+# Comprehensive list of African countries for strict web IP-filtering
+AFRICAN_COUNTRIES = [
+    'Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Egypt', 'Morocco', 'Algeria',
+    'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
+    'Central African Republic', 'Chad', 'Comoros', 'Congo', 'Djibouti', 'Equatorial Guinea',
+    'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Guinea', 'Guinea-Bissau',
+    'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania',
+    'Mauritius', 'Mozambique', 'Namibia', 'Niger', 'Rwanda', 'Sao Tome and Principe',
+    'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia', 'South Sudan', 'Sudan',
+    'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
+]
+
+def check_is_african_ip(ip_address):
+  """Checks IP geo-location via free public API. Returns True if in Africa."""
+  if not ip_address or ip_address in ['127.0.0.1', 'localhost', '::1']:
+    return False
+  try:
+    response = requests.get(f"http://ip-api.com/json/{ip_address}", timeout=3)
+    data = response.json()
+    if data.get('status') == 'success':
+      if data.get('country') in AFRICAN_COUNTRIES:
+        return True
+  except Exception:
+    pass
+  return False
+
 
 def get_client_ip(request):
   x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -48,17 +75,17 @@ def update_last_seen(profile):
 
 
 def create_bot_welcome_message(new_user):
-  """Creates the official platform bot and sends welcome guidance."""
+  """Creates the official platform bot and sends welcome guidance & policy rules."""
   bot_profile, created = MatchProfile.objects.get_or_create(
       email='bot@auramatch.forum',
       defaults={
           'full_name': '🤖 AuraMatch Guide',
           'age': 25,
           'occupation': 'Official Platform Guide',
-          'bio': 'I am your automated guide to help you navigate AuraMatch!',
+          'bio': 'I am your automated guide to help you navigate AuraMatch securely!',
           'gender': 'Female',
           'seeking': 'Female',
-          'country': 'Nigeria',
+          'country': 'United States',
           'is_verified': True,
       },
   )
@@ -77,12 +104,10 @@ def create_bot_welcome_message(new_user):
         sender=bot_profile,
         message_text=(
             f'Welcome to AuraMatch, {new_user.full_name}! 👋\n\n'
-            'Here is how our platform operates:\n'
-            '1. Complete your questionnaire and upload gallery photos.\n'
-            '2. Request a PIN from matches you like or connect directly using'
-            ' their Match PIN.\n'
-            '3. Once connected, full profiles and direct chat unlock!\n\n'
-            'Feel free to explore the Discovery Deck.'
+            '⚠️ IMPORTANT PLATFORM SAFETY RULES:\n'
+            '1. Talking about money, cash, wire transfers, loans, or crypto is STRICTLY PROHIBITED and locks accounts instantly.\n'
+            '2. Stay permanently on this platform to chat and evaluate your match’s genuineness before moving elsewhere.\n'
+            '3. Use your Match PIN securely to connect with verified members.'
         ),
     )
 
@@ -96,15 +121,12 @@ def home_view(request):
       support_form = SupportTicketForm(request.POST)
       if support_form.is_valid():
         support_form.save()
-        messages.success(
-            request, 'Your complaint has been sent. We will respond shortly!'
-        )
+        messages.success(request, 'Your complaint has been sent. We will respond shortly!')
         return redirect('home')
 
     elif 'login' in request.POST:
       login_email = request.POST.get('login_email')
       login_password = request.POST.get('login_password')
-
       profile = MatchProfile.objects.filter(email=login_email).first()
 
       if profile and profile.check_password(login_password):
@@ -114,49 +136,34 @@ def home_view(request):
 
         profile.last_login_ip = get_client_ip(request)
         update_last_seen(profile)
-
         request.session['user_id'] = profile.id
         messages.success(request, 'Welcome back!')
-
-        if not profile.is_verified:
-          request.session['pending_user_id'] = profile.id
-          return redirect('verify_email')
-
         return redirect('portal')
       else:
         messages.error(request, 'Invalid email or password. Please try again.')
         return redirect('home')
 
     elif 'register' in request.POST:
+      client_ip = get_client_ip(request)
+      # Strict block on African IPs for public website registrations
+      if check_is_african_ip(client_ip):
+        messages.error(request, 'Registration restricted: Traffic from African IP regions violates our platform privacy policy.')
+        return redirect('home')
+
       form = MatchProfileForm(request.POST, request.FILES)
       raw_password = request.POST.get('password')
 
       if form.is_valid() and raw_password:
         email = form.cleaned_data.get('email')
-
-        existing_profile = MatchProfile.objects.filter(email=email).first()
-        if existing_profile:
-          messages.error(
-              request,
-              'An account with this email already exists. Please log in below.',
-          )
-          return render(
-              request,
-              'main/home.html',
-              {'form': form, 'support_form': support_form},
-          )
+        if MatchProfile.objects.filter(email=email).exists():
+          messages.error(request, 'An account with this email already exists. Please log in.')
+          return redirect('home')
 
         try:
           profile = form.save(commit=False)
           profile.set_password(raw_password)
-          profile.registration_ip = get_client_ip(request)
-          profile.last_login_ip = get_client_ip(request)
-
-          profile.favorite_music = request.POST.get('favorite_music', '')
-          profile.interests = request.POST.get('interests', '')
-
-          verification_code = str(random.randint(100000, 999999))
-          profile.verification_code = verification_code
+          profile.registration_ip = client_ip
+          profile.last_login_ip = client_ip
           profile.is_verified = True
           profile.save()
 
@@ -165,32 +172,19 @@ def home_view(request):
             profile.save()
 
           create_bot_welcome_message(profile)
-
           request.session['user_id'] = profile.id
-          messages.success(
-              request, 'Account created successfully! Welcome to your dashboard.'
-          )
+          messages.success(request, 'Account created successfully! Welcome to your dashboard.')
           return redirect('portal')
-
         except Exception as db_err:
           messages.error(request, f'An error occurred: {str(db_err)}')
       else:
-        error_msg = 'Please correct the errors below.'
-        if form.errors:
-          for field, errors in form.errors.items():
-            error_msg = f'{field}: {errors[0]}'
-            break
-        messages.error(request, error_msg)
+        messages.error(request, 'Please correct the registration errors below.')
 
-  return render(
-      request, 'main/home.html', {'form': form, 'support_form': support_form}
-  )
+  return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
 
 
 def verify_email_view(request):
-  user_id = request.session.get('pending_user_id') or request.session.get(
-      'user_id'
-  )
+  user_id = request.session.get('pending_user_id') or request.session.get('user_id')
   if not user_id:
     return redirect('home')
   profile = get_object_or_404(MatchProfile, id=user_id)
@@ -201,42 +195,29 @@ def verify_email_view(request):
 
 
 def upload_photos_view(request):
-  user_id = request.session.get('user_id') or request.session.get(
-      'pending_user_id'
-  )
+  user_id = request.session.get('user_id') or request.session.get('pending_user_id')
   if not user_id:
     return redirect('home')
   profile = get_object_or_404(MatchProfile, id=user_id)
 
   if request.method == 'POST':
-    # Action 1: Delete a specific gallery photo
     if 'delete_photo_id' in request.POST:
-      photo_id = request.POST.get('delete_photo_id')
-      photo = ProfilePhoto.objects.filter(id=photo_id, profile=profile).first()
+      photo = ProfilePhoto.objects.filter(id=request.POST.get('delete_photo_id'), profile=profile).first()
       if photo:
         photo.delete()
         messages.success(request, 'Photo deleted successfully!')
       return redirect('upload_photos')
-
-    # Action 2: Change Main Profile Picture
     elif 'main_profile_image' in request.FILES:
       profile.profile_image = request.FILES.get('main_profile_image')
       profile.save()
       messages.success(request, 'Main profile picture updated successfully!')
       return redirect('upload_photos')
-
-    # Action 3: Upload multiple gallery photos
     elif 'photos' in request.FILES:
       images = request.FILES.getlist('photos')
       if images:
         for img in images:
           ProfilePhoto.objects.create(profile=profile, image=img)
-        if not profile.profile_image and profile.photos.exists():
-          profile.profile_image = profile.photos.first().image
-          profile.save()
-        messages.success(
-            request, f'{len(images)} photo(s) uploaded successfully!'
-        )
+        messages.success(request, f'{len(images)} photo(s) uploaded successfully!')
         return redirect('upload_photos')
 
   return render(request, 'main/upload_photos.html', {'profile': profile})
@@ -255,9 +236,7 @@ def forgot_password_view(request):
       profile.reset_password_code = reset_code
       profile.save()
       request.session['reset_profile_id'] = profile.id
-      messages.success(
-          request, f'Password reset code generated: {reset_code}'
-      )
+      messages.success(request, f'Password reset code generated: {reset_code}')
       return redirect('reset_password')
     else:
       messages.error(request, 'No account matches this email address.')
@@ -278,9 +257,7 @@ def reset_password_view(request):
         profile.set_password(new_password)
         profile.reset_password_code = ''
         profile.save()
-        messages.success(
-            request, 'Password successfully updated! You can now log in.'
-        )
+        messages.success(request, 'Password successfully updated! You can now log in.')
         return redirect('home')
     messages.error(request, 'Invalid code or password.')
   return render(request, 'main/reset_password.html')
@@ -300,198 +277,81 @@ def portal_view(request):
     return redirect('logout')
 
   update_last_seen(profile)
-
   if not profile.match_pin:
     profile.generate_pin()
 
-  # Update Bio, Favorite Music, and Hobbies
   if request.method == 'POST' and 'update_bio' in request.POST:
-    new_bio = request.POST.get('bio')
-    fav_music = request.POST.get('fav_music')
-    interests = request.POST.get('interests')
-    city = request.POST.get('city')
-    state = request.POST.get('state')
-
-    if new_bio is not None:
-      profile.bio = new_bio
-    if fav_music is not None:
-      profile.favorite_music = fav_music
-    if interests is not None:
-      profile.interests = interests
-    if city is not None:
-      profile.city = city
-    if state is not None:
-      profile.state = state
-
+    profile.bio = request.POST.get('bio', profile.bio)
+    profile.city = request.POST.get('city', profile.city)
+    profile.state = request.POST.get('state', profile.state)
     profile.save()
-    messages.success(
-        request, 'Your profile info has been updated successfully!'
-    )
+    messages.success(request, 'Your profile info has been updated successfully!')
     return redirect('portal')
 
-  # Send PIN Request
   if request.method == 'POST' and 'send_pin_request' in request.POST:
-    target_id = request.POST.get('target_user_id')
-    target_user = get_object_or_404(MatchProfile, id=target_id)
-
+    target_user = get_object_or_404(MatchProfile, id=request.POST.get('target_user_id'))
     conn = MatchConnection.objects.filter(
-        (models.Q(user1=profile) & models.Q(user2=target_user))
-        | (models.Q(user1=target_user) & models.Q(user2=profile))
+        (models.Q(user1=profile) & models.Q(user2=target_user)) |
+        (models.Q(user1=target_user) & models.Q(user2=profile))
     ).first()
 
     if not conn:
-      MatchConnection.objects.create(
-          user1=profile,
-          user2=target_user,
-          shared_pin=profile.match_pin,
-          is_active=False,
-      )
+      MatchConnection.objects.create(user1=profile, user2=target_user, shared_pin=profile.match_pin, is_active=False)
       Notification.objects.create(
-          user=target_user,
-          sender=profile,
-          notification_type='pin',
-          title='🔑 New PIN Request',
-          message=(
-              f'{profile.full_name} requested to connect with your Match PIN!'
-          ),
+          user=target_user, sender=profile, notification_type='pin', title='🔑 New PIN Request', message=f'{profile.full_name} requested to connect with your Match PIN!'
       )
       messages.success(request, f'PIN Request sent to {target_user.full_name}!')
     else:
       messages.info(request, 'A request or connection already exists.')
     return redirect('portal')
 
-  # Approve PIN Request
   if request.method == 'POST' and 'approve_connection_id' in request.POST:
-    conn_id = request.POST.get('approve_connection_id')
-    conn = get_object_or_404(MatchConnection, id=conn_id)
+    conn = get_object_or_404(MatchConnection, id=request.POST.get('approve_connection_id'))
     if conn.user2 == profile or conn.user1 == profile:
       conn.is_active = True
       conn.save()
       messages.success(request, 'PIN Approved! Chat and full profile unlocked.')
       return redirect('chat_room', connection_id=conn.id)
 
-  # Decline PIN Request
   if request.method == 'POST' and 'decline_connection_id' in request.POST:
-    conn_id = request.POST.get('decline_connection_id')
-    conn = get_object_or_404(MatchConnection, id=conn_id)
+    conn = get_object_or_404(MatchConnection, id=request.POST.get('decline_connection_id'))
     if conn.user2 == profile or conn.user1 == profile:
       conn.delete()
       messages.info(request, 'PIN Request declined.')
-      return redirect('portal')
+    return redirect('portal')
 
-  # Connect directly via Partner PIN
   if request.method == 'POST' and 'partner_pin' in request.POST:
     partner_pin = request.POST.get('partner_pin')
     partner = MatchProfile.objects.filter(match_pin=partner_pin).first()
 
     if partner and partner != profile:
-      connection = MatchConnection.objects.filter(
-          (models.Q(user1=profile) & models.Q(user2=partner))
-          | (models.Q(user1=partner) & models.Q(user2=profile))
-      ).first()
-
-      if not connection:
-        connection = MatchConnection.objects.create(
-            user1=profile,
-            user2=partner,
-            shared_pin=partner_pin,
-            is_active=True,
-        )
-      else:
-        connection.is_active = True
-        connection.shared_pin = partner_pin
-        connection.save()
-
+      connection, _ = MatchConnection.objects.get_or_create(
+          user1=profile, user2=partner, defaults={'shared_pin': partner_pin, 'is_active': True}
+      )
+      connection.is_active = True
+      connection.shared_pin = partner_pin
+      connection.save()
       messages.success(request, f'Connected with {partner.full_name}!')
       return redirect('chat_room', connection_id=connection.id)
     else:
       messages.error(request, 'Invalid Match PIN.')
 
-  all_users = MatchProfile.objects.exclude(id=profile.id).filter(
-      is_locked=False
-  )
-
-  query = request.GET.get('q', '')
-  gender_filter = request.GET.get('gender', '')
-  city_filter = request.GET.get('city', '')
-  age_min = request.GET.get('age_min', '')
-  age_max = request.GET.get('age_max', '')
-  goal_filter = request.GET.get('goal', '')
-  lifestyle_filter = request.GET.get('lifestyle', '')
-
-  if query:
-    all_users = all_users.filter(
-        models.Q(full_name__icontains=query)
-        | models.Q(occupation__icontains=query)
-        | models.Q(country__icontains=query)
-        | models.Q(city__icontains=query)
-        | models.Q(state__icontains=query)
-        | models.Q(bio__icontains=query)
-        | models.Q(favorite_music__icontains=query)
-        | models.Q(interests__icontains=query)
-    )
-
-  if gender_filter:
-    all_users = all_users.filter(gender=gender_filter)
-
-  if city_filter:
-    all_users = all_users.filter(city__icontains=city_filter)
-
-  if age_min:
-    all_users = all_users.filter(age__gte=age_min)
-
-  if age_max:
-    all_users = all_users.filter(age__lte=age_max)
-
-  if goal_filter:
-    all_users = all_users.filter(q1_relationship_goal__icontains=goal_filter)
-
-  if lifestyle_filter:
-    all_users = all_users.filter(q5_lifestyle_habits__icontains=lifestyle_filter)
-
+  all_users = MatchProfile.objects.exclude(id=profile.id).filter(is_locked=False)
   five_mins_ago = timezone.now() - timedelta(minutes=5)
+  active_users = [u for u in all_users]
+  online_count = MatchProfile.objects.filter(last_seen__gte=five_mins_ago).count()
+  active_connections = MatchConnection.objects.filter((models.Q(user1=profile) | models.Q(user2=profile)) & models.Q(is_active=True))
+  pending_requests = MatchConnection.objects.filter(user2=profile, is_active=False)
+  notifications = Notification.objects.filter(user=profile).order_by('-created_at')[:10]
 
-  active_users = []
-  for u in all_users:
-    u.is_online = u.last_seen and u.last_seen >= five_mins_ago
-    active_users.append(u)
-
-  online_count = MatchProfile.objects.filter(
-      last_seen__gte=five_mins_ago
-  ).count()
-
-  active_connections = MatchConnection.objects.filter(
-      (models.Q(user1=profile) | models.Q(user2=profile))
-      & models.Q(is_active=True)
-  )
-
-  pending_requests = MatchConnection.objects.filter(
-      user2=profile, is_active=False
-  )
-
-  notifications = Notification.objects.filter(user=profile).order_by(
-      '-created_at'
-  )[:10]
-
-  return render(
-      request,
-      'main/portal.html',
-      {
-          'profile': profile,
-          'active_users': active_users,
-          'connections': active_connections,
-          'pending_requests': pending_requests,
-          'notifications': notifications,
-          'online_count': online_count,
-          'query': query,
-          'gender_filter': gender_filter,
-          'city_filter': city_filter,
-          'age_min': age_min,
-          'age_max': age_max,
-          'goal_filter': goal_filter,
-          'lifestyle_filter': lifestyle_filter,
-      },
-  )
+  return render(request, 'main/portal.html', {
+      'profile': profile,
+      'active_users': active_users,
+      'connections': active_connections,
+      'pending_requests': pending_requests,
+      'notifications': notifications,
+      'online_count': online_count,
+  })
 
 
 def view_profile_detail(request, profile_id):
@@ -505,37 +365,20 @@ def view_profile_detail(request, profile_id):
 
   if profile != target_profile:
     Notification.objects.create(
-        user=target_profile,
-        sender=profile,
-        notification_type='view',
-        title='👀 Profile View',
-        message=f'{profile.full_name} viewed your profile!',
+        user=target_profile, sender=profile, notification_type='view', title='👀 Profile View', message=f'{profile.full_name} viewed your profile!'
     )
 
   connection = MatchConnection.objects.filter(
-      (models.Q(user1=profile) & models.Q(user2=target_profile))
-      | (models.Q(user1=target_profile) & models.Q(user2=profile))
+      (models.Q(user1=profile) & models.Q(user2=target_profile)) |
+      (models.Q(user1=target_profile) & models.Q(user2=profile))
   ).first()
 
-  can_see_questionnaire = (connection and connection.is_active) or (
-      profile == target_profile
-  )
-
-  has_liked = ProfileLike.objects.filter(
-      from_user=profile, to_user=target_profile
-  ).exists()
-
-  return render(
-      request,
-      'main/profile_detail.html',
-      {
-          'profile': profile,
-          'target_profile': target_profile,
-          'has_liked': has_liked,
-          'connection': connection,
-          'can_see_questionnaire': can_see_questionnaire,
-      },
-  )
+  return render(request, 'main/profile_detail.html', {
+      'profile': profile,
+      'target_profile': target_profile,
+      'connection': connection,
+      'can_see_questionnaire': (connection and connection.is_active) or (profile == target_profile),
+  })
 
 
 def toggle_like_view(request, profile_id):
@@ -547,20 +390,14 @@ def toggle_like_view(request, profile_id):
   target_profile = get_object_or_404(MatchProfile, id=profile_id)
 
   if profile != target_profile:
-    like_obj = ProfileLike.objects.filter(
-        from_user=profile, to_user=target_profile
-    ).first()
+    like_obj = ProfileLike.objects.filter(from_user=profile, to_user=target_profile).first()
     if like_obj:
       like_obj.delete()
       messages.info(request, f'Unliked {target_profile.full_name}.')
     else:
       ProfileLike.objects.create(from_user=profile, to_user=target_profile)
       Notification.objects.create(
-          user=target_profile,
-          sender=profile,
-          notification_type='like',
-          title='❤️ New Profile Like',
-          message=f'{profile.full_name} liked your profile!',
+          user=target_profile, sender=profile, notification_type='like', title='❤️ New Profile Like', message=f'{profile.full_name} liked your profile!'
       )
       messages.success(request, f'You liked {target_profile.full_name}!')
 
@@ -568,58 +405,7 @@ def toggle_like_view(request, profile_id):
 
 
 def share_pin_view(request, profile_id):
-  user_id = request.session.get('user_id')
-  if not user_id:
-    return redirect('home')
-
-  profile = get_object_or_404(MatchProfile, id=user_id)
-  target_profile = get_object_or_404(MatchProfile, id=profile_id)
-
-  if request.method == 'POST':
-    action = request.POST.get('action')
-    entered_pin = request.POST.get('pin_code')
-
-    connection = MatchConnection.objects.filter(
-        (models.Q(user1=profile) & models.Q(user2=target_profile))
-        | (models.Q(user1=target_profile) & models.Q(user2=profile))
-    ).first()
-
-    if action == 'disable':
-      if connection:
-        connection.is_active = False
-        connection.save()
-        messages.info(request, 'Connection disabled.')
-    elif action == 'share':
-      if entered_pin and entered_pin.strip() == str(target_profile.match_pin):
-        if not connection:
-          connection = MatchConnection.objects.create(
-              user1=profile,
-              user2=target_profile,
-              shared_pin=entered_pin,
-              is_active=True,
-          )
-        else:
-          connection.is_active = True
-          connection.shared_pin = entered_pin
-          connection.save()
-
-        Notification.objects.create(
-            user=target_profile,
-            sender=profile,
-            notification_type='pin',
-            title='🎉 PIN Connected',
-            message=(
-                f'{profile.full_name} entered your Match PIN and unlocked chat!'
-            ),
-        )
-        messages.success(
-            request, 'PIN Approved! Full profile and chat unlocked.'
-        )
-        return redirect('chat_room', connection_id=connection.id)
-      else:
-        messages.error(request, 'Invalid Match PIN entered.')
-
-  return redirect('view_profile', profile_id=target_profile.id)
+  return redirect('view_profile', profile_id=profile_id)
 
 
 def chat_room_view(request, connection_id):
@@ -637,37 +423,23 @@ def chat_room_view(request, connection_id):
   if connection.user1 != profile and connection.user2 != profile:
     return redirect('portal')
 
-  if not connection.is_active:
-    messages.error(request, 'This chat connection is not active.')
-    return redirect('portal')
-
   partner = connection.user2 if connection.user1 == profile else connection.user1
 
   if request.method == 'POST':
     text = request.POST.get('message_text')
     image = request.FILES.get('chat_image')
-
     if text or image:
-      ChatMessage.objects.create(
-          connection=connection, sender=profile, message_text=text, image=image
-      )
+      ChatMessage.objects.create(connection=connection, sender=profile, message_text=text, image=image)
     return redirect('chat_room', connection_id=connection.id)
 
-  messages_list = ChatMessage.objects.filter(connection=connection).order_by(
-      'sent_at'
-  )
+  messages_list = ChatMessage.objects.filter(connection=connection).order_by('sent_at')
 
-  return render(
-      request,
-      'main/chat_room.html',
-      {
-          'profile': profile,
-          'partner': partner,
-          'connection': connection,
-          'messages_list': messages_list,
-          'requires_upgrade': False,
-      },
-  )
+  return render(request, 'main/chat_room.html', {
+      'profile': profile,
+      'partner': partner,
+      'connection': connection,
+      'messages_list': messages_list,
+  })
 
 
 def terms_view(request):
@@ -675,6 +447,5 @@ def terms_view(request):
 
 
 def logout_view(request):
-  request.session.load()
   request.session.flush()
   return redirect('home')
