@@ -33,7 +33,6 @@ from .models import (
     Notification,
 )
 
-# Comprehensive list of African countries for strict web IP-filtering
 AFRICAN_COUNTRIES = [
     'Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Egypt', 'Morocco', 'Algeria',
     'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde',
@@ -46,7 +45,6 @@ AFRICAN_COUNTRIES = [
 ]
 
 def check_is_african_ip(ip_address):
-  """Checks IP geo-location via free public API. Returns True if in Africa."""
   if not ip_address or ip_address in ['127.0.0.1', 'localhost', '::1']:
     return False
   try:
@@ -75,7 +73,6 @@ def update_last_seen(profile):
 
 
 def create_bot_welcome_message(new_user):
-  """Creates the official platform bot and sends welcome guidance & policy rules."""
   bot_profile, created = MatchProfile.objects.get_or_create(
       email='bot@auramatch.forum',
       defaults={
@@ -145,7 +142,6 @@ def home_view(request):
 
     elif 'register' in request.POST:
       client_ip = get_client_ip(request)
-      # Strict block on African IPs for public website registrations
       if check_is_african_ip(client_ip):
         messages.error(request, 'Registration restricted: Traffic from African IP regions violates our platform privacy policy.')
         return redirect('home')
@@ -362,11 +358,6 @@ def view_profile_detail(request, profile_id):
   profile = get_object_or_404(MatchProfile, id=user_id)
   target_profile = get_object_or_404(MatchProfile, id=profile_id)
   update_last_seen(profile)
-
-  if profile != target_profile:
-    Notification.objects.create(
-        user=target_profile, sender=profile, notification_type='view', title='👀 Profile View', message=f'{profile.full_name} viewed your profile!'
-    )
 
   connection = MatchConnection.objects.filter(
       (models.Q(user1=profile) & models.Q(user2=target_profile)) |

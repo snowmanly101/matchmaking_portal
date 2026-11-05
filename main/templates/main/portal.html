@@ -28,31 +28,96 @@
             <a class="navbar-brand brand-logo fs-3" href="{% url 'portal' %}">AURAMATCH</a>
             
             <div class="d-flex align-items-center gap-3">
-                <!-- Notifications Bell Dropdown -->
+                <!-- Mailbox & Inbox Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-warning btn-sm rounded-circle p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
-                        🔔
-                        {% if notifications %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px;">
-                                {{ notifications.count }}
-                            </span>
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                        📬 Mailbox & Inbox 
+                        {% if pending_requests or notifications %}
+                            <span class="badge bg-warning text-dark ms-1">({{ pending_requests.count|default:0|add:notifications.count|default:0 }})</span>
+                        {% else %}
+                            <span class="badge bg-secondary ms-1">(0)</span>
                         {% endif %}
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark p-3 shadow dropdown-menu-end mt-2" style="width: 300px; max-height: 350px; overflow-y: auto;">
-                        <li><h6 class="text-warning mb-2 fw-bold border-bottom pb-2">🔔 Live Notifications</h6></li>
-                        {% if notifications %}
-                            {% for notif in notifications %}
-                                <li class="bg-dark p-2 rounded mb-2 border border-secondary">
+                    <ul class="dropdown-menu dropdown-menu-dark p-3 shadow dropdown-menu-end mt-2" style="width: 360px; max-height: 420px; overflow-y: auto;">
+                        
+                        <!-- PENDING PIN REQUESTS -->
+                        <li><h6 class="text-warning mb-2 fw-bold border-bottom pb-2">📩 Pending PIN Requests</h6></li>
+                        {% if pending_requests %}
+                            {% for req in pending_requests %}
+                                <li class="bg-dark p-2 rounded mb-2 border border-warning">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <strong class="text-white small">{{ notif.title }}</strong>
-                                        <small class="text-muted" style="font-size: 10px;">{{ notif.created_at|timesince }} ago</small>
+                                        <strong class="text-white small">{{ req.user1.full_name }}</strong>
+                                        <span class="badge bg-danger" style="font-size: 10px;">PIN: {{ req.shared_pin }}</span>
                                     </div>
-                                    <p class="text-secondary small mb-0">{{ notif.message }}</p>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <form method="POST" class="w-50 m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="approve_connection_id" value="{{ req.id }}">
+                                            <button type="submit" class="btn btn-success btn-sm w-100 py-0 fw-bold" style="font-size: 11px;">Approve</button>
+                                        </form>
+                                        <form method="POST" class="w-50 m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="decline_connection_id" value="{{ req.id }}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-0" style="font-size: 11px;">Decline</button>
+                                        </form>
+                                    </div>
                                 </li>
                             {% endfor %}
                         {% else %}
-                            <li><small class="text-muted d-block py-2">No new notifications.</small></li>
+                            <li><small class="text-muted d-block mb-2">No pending PIN requests.</small></li>
                         {% endif %}
+
+                        <li><hr class="dropdown-divider border-secondary my-2"></li>
+
+                        <!-- ACTIVE CONVERSATIONS -->
+                        <li><h6 class="text-white mb-2 fw-bold">💬 Active Conversations</h6></li>
+                        {% if connections %}
+                            {% for conn in connections %}
+                                <li>
+                                    <a class="dropdown-item text-light rounded mb-1 p-2 bg-dark border border-secondary d-flex justify-content-between align-items-center" href="{% url 'chat_room' conn.id %}">
+                                        <span class="small">
+                                            {% if conn.user1 == profile %}
+                                                {{ conn.user2.full_name }}
+                                            {% else %}
+                                                {{ conn.user1.full_name }}
+                                            {% endif %}
+                                        </span>
+                                        <span class="badge bg-danger" style="font-size: 10px;">Open Chat</span>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li><small class="text-muted d-block mb-2">No active conversations yet.</small></li>
+                        {% endif %}
+
+                        <li><hr class="dropdown-divider border-secondary my-2"></li>
+
+                        <!-- LIVE NOTIFICATIONS -->
+                        <li><h6 class="text-warning mb-2 fw-bold">🔔 Mailbox Notifications</h6></li>
+                        {% if notifications %}
+                            {% for notif in notifications %}
+                                <li class="bg-dark p-2 rounded mb-1 border border-secondary">
+                                    <strong class="text-white small" style="font-size: 11px;">{{ notif.title }}</strong>
+                                    <p class="text-secondary small mb-0" style="font-size: 10px;">{{ notif.message }}</p>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li><small class="text-muted d-block">No notifications.</small></li>
+                        {% endif %}
+
+                        <li><hr class="dropdown-divider border-secondary my-2"></li>
+                        
+                        <!-- ENTER PIN -->
+                        <li>
+                            <form method="POST" class="mt-1">
+                                {% csrf_token %}
+                                <label class="form-label text-secondary small mb-1" style="font-size: 11px;">Enter Partner Match PIN:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="partner_pin" class="form-control bg-dark text-white border-secondary" placeholder="PIN Code" required>
+                                    <button type="submit" class="btn btn-rose btn-sm">Connect</button>
+                                </div>
+                            </form>
+                        </li>
                     </ul>
                 </div>
 
@@ -70,7 +135,7 @@
         {% endif %}
 
         <div class="row g-4">
-            <!-- LEFT COLUMN: Profile & Safety Policy Box Beneath -->
+            <!-- LEFT COLUMN: Profile & Safety Guide Box -->
             <div class="col-lg-4">
                 <div class="glass-card p-4 text-center">
                     
@@ -85,6 +150,7 @@
                     <h3 class="fw-bold text-white mb-1">{{ profile.full_name }}</h3>
                     <span class="badge badge-status px-3 py-1 rounded-pill mb-3">Active Member</span>
 
+                    <!-- Manage / Change Photos Button -->
                     <a href="{% url 'upload_photos' %}" class="btn btn-outline-danger btn-sm w-100 rounded-pill mb-3 shadow fw-bold">📸 Manage / Change Photos</a>
 
                     <div class="text-start p-3 rounded bg-dark border border-secondary mb-3 small">
@@ -101,7 +167,7 @@
                         <span class="badge bg-danger fs-4 px-3 py-2">{{ profile.match_pin }}</span>
                     </div>
 
-                    <!-- PLATFORM SAFETY & AVOID BLOCK GUIDE BOX (Positioned beneath logout/profile area) -->
+                    <!-- PLATFORM SAFETY & AVOID BLOCK GUIDE BOX -->
                     <div class="p-3 rounded bg-dark border border-danger text-start shadow-sm">
                         <h6 class="text-warning fw-bold mb-2" style="font-size: 13px;">⚠️ Platform Safety & Rules</h6>
                         <p class="text-light small mb-2" style="font-size: 11px; line-height: 1.4;">
@@ -114,7 +180,7 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Discovery Feed -->
+            <!-- RIGHT COLUMN: Active Dating Directory -->
             <div class="col-lg-8">
                 <div class="glass-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -122,11 +188,20 @@
                         <span class="badge bg-success px-3 py-2 rounded-pill">🟢 {{ online_count }} Users Online</span>
                     </div>
 
+                    <!-- User Cards Grid -->
                     <div class="row g-3">
                         {% for target in active_users %}
                             <div class="col-md-6">
                                 <div class="user-card p-3 text-center h-100 d-flex flex-column justify-content-between">
                                     <div>
+                                        <div class="d-flex justify-content-end mb-1">
+                                            {% if target.is_online %}
+                                                <span class="dot-online" title="Online"></span> <small class="text-success ms-1" style="font-size: 11px;">Online</small>
+                                            {% else %}
+                                                <span class="dot-offline" title="Offline"></span> <small class="text-muted ms-1" style="font-size: 11px;">Offline</small>
+                                            {% endif %}
+                                        </div>
+
                                         {% if target.profile_image %}
                                             <img src="{{ target.profile_image.url }}" alt="{{ target.full_name }}" class="rounded-circle mb-2 shadow" style="width: 85px; height: 85px; object-fit: cover; border: 2px solid #f43f5e;">
                                         {% else %}
@@ -134,7 +209,9 @@
                                         {% endif %}
                                         
                                         <h5 class="fw-bold text-white mb-1">{{ target.full_name }}, {{ target.age }}</h5>
-                                        <p class="text-secondary small mb-1">📍 {% if target.city %}{{ target.city }}, {% endif %}{{ target.country }}</p>
+                                        <p class="text-secondary small mb-1">📍 {% if target.city %}{{ target.city }}, {% endif %}{{ target.country }} | 💼 {{ target.occupation }}</p>
+
+                                        <p class="text-light small fst-italic text-truncate px-2">"{{ target.bio }}"</p>
                                     </div>
 
                                     <div class="mt-2 d-flex gap-2">
