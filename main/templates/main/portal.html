@@ -17,6 +17,7 @@
         .user-card:hover { transform: translateY(-5px); border-color: #f43f5e; }
         .dot-online { height: 10px; width: 10px; background-color: #10b981; border-radius: 50%; display: inline-block; }
         .dot-offline { height: 10px; width: 10px; background-color: #64748b; border-radius: 50%; display: inline-block; }
+        .dropdown-menu-dark { background: #0f172a !important; border: 1px solid rgba(244,63,94,0.3) !important; z-index: 1050; }
     </style>
 </head>
 <body>
@@ -37,7 +38,7 @@
                             <span class="badge bg-secondary ms-1">({% if connections %}{{ connections.count }}{% else %}0{% endif %})</span>
                         {% endif %}
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-dark p-3 shadow dropdown-menu-end" style="width: 360px; background: #0f172a; border: 1px solid rgba(244,63,94,0.3);">
+                    <ul class="dropdown-menu dropdown-menu-dark p-3 shadow dropdown-menu-end mt-2" style="width: 360px; max-height: 400px; overflow-y: auto;">
                         
                         <!-- PENDING INCOMING PIN REQUESTS -->
                         <li><h6 class="text-warning mb-2 fw-bold border-bottom pb-2">📩 Incoming PIN Requests</h6></li>
@@ -125,14 +126,21 @@
             <!-- LEFT COLUMN: Profile & Editor -->
             <div class="col-lg-4">
                 <div class="glass-card p-4 text-center">
-                    {% if profile.profile_image %}
-                        <img src="{{ profile.profile_image.url }}" alt="Profile" class="rounded-circle mb-3 shadow" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #f43f5e;">
-                    {% else %}
-                        <img src="https://via.placeholder.com/120" alt="Profile" class="rounded-circle mb-3 shadow" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #f43f5e;">
-                    {% endif %}
+                    
+                    <!-- Clickable Profile Picture -->
+                    <a href="{% url 'upload_photos' %}" title="Click to Change or Delete Photos">
+                        {% if profile.profile_image %}
+                            <img src="{{ profile.profile_image.url }}" alt="Profile" class="rounded-circle mb-3 shadow" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #f43f5e; cursor: pointer;">
+                        {% else %}
+                            <img src="https://via.placeholder.com/120" alt="Profile" class="rounded-circle mb-3 shadow" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #f43f5e; cursor: pointer;">
+                        {% endif %}
+                    </a>
                     
                     <h3 class="fw-bold text-white mb-1">{{ profile.full_name }}</h3>
                     <span class="badge badge-status px-3 py-1 rounded-pill mb-3">Active Member</span>
+
+                    <!-- Manage / Change Photos Button -->
+                    <a href="{% url 'upload_photos' %}" class="btn btn-outline-danger btn-sm w-100 rounded-pill mb-3 shadow fw-bold">📸 Manage / Change Photos</a>
 
                     <div class="text-start p-3 rounded bg-dark border border-secondary mb-3 small">
                         <p class="mb-2"><strong>Age:</strong> <span class="text-light">{{ profile.age }} yrs</span></p>
