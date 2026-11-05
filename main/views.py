@@ -86,6 +86,11 @@ def create_bot_welcome_message(new_user):
           'is_verified': True,
       },
   )
+  # Force bot country to United States if already created
+  if bot_profile.country != 'United States':
+    bot_profile.country = 'United States'
+    bot_profile.save()
+
   if not bot_profile.match_pin:
     bot_profile.generate_pin()
 
@@ -332,7 +337,8 @@ def portal_view(request):
     else:
       messages.error(request, 'Invalid Match PIN.')
 
-  all_users = MatchProfile.objects.exclude(id=profile.id).filter(is_locked=False)
+  # Exclude bot from discovery feed so it never appears as a card
+  all_users = MatchProfile.objects.exclude(id=profile.id).exclude(email='bot@auramatch.forum').filter(is_locked=False)
   five_mins_ago = timezone.now() - timedelta(minutes=5)
   active_users = [u for u in all_users]
   online_count = MatchProfile.objects.filter(last_seen__gte=five_mins_ago).count()
@@ -358,6 +364,11 @@ def view_profile_detail(request, profile_id):
   profile = get_object_or_404(MatchProfile, id=user_id)
   target_profile = get_object_or_404(MatchProfile, id=profile_id)
   update_last_seen(profile)
+
+  if profile != target_profile:
+    Notification.objects.create(
+        user=target_profile, sender=profile, notification_type='view', title='👀 Profile View', message=f'{profile.full_name} viewed your profile!'
+    )
 
   connection = MatchConnection.objects.filter(
       (models.Q(user1=profile) & models.Q(user2=target_profile)) |

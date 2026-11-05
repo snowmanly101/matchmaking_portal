@@ -135,7 +135,7 @@
         {% endif %}
 
         <div class="row g-4">
-            <!-- LEFT COLUMN: Profile & Safety Guide Box -->
+            <!-- LEFT COLUMN: Profile & Photo Manager Link -->
             <div class="col-lg-4">
                 <div class="glass-card p-4 text-center">
                     
@@ -167,16 +167,20 @@
                         <span class="badge bg-danger fs-4 px-3 py-2">{{ profile.match_pin }}</span>
                     </div>
 
-                    <!-- PLATFORM SAFETY & AVOID BLOCK GUIDE BOX -->
-                    <div class="p-3 rounded bg-dark border border-danger text-start shadow-sm">
-                        <h6 class="text-warning fw-bold mb-2" style="font-size: 13px;">⚠️ Platform Safety & Rules</h6>
-                        <p class="text-light small mb-2" style="font-size: 11px; line-height: 1.4;">
-                            <strong>1. Zero Tolerance on Money:</strong> Mentioning money, cash, transfers, or crypto will <u>automatically lock your account</u> permanently.
-                        </p>
-                        <p class="text-light small mb-0" style="font-size: 11px; line-height: 1.4;">
-                            <strong>2. Stay on Platform:</strong> Keep chatting securely right here on AuraMatch to evaluate your match's genuineness before moving elsewhere.
-                        </p>
-                    </div>
+                    <!-- Editable Profile Info -->
+                    <form method="POST" class="text-start">
+                        {% csrf_token %}
+                        <label class="form-label text-secondary small fw-bold">🏙️ City:</label>
+                        <input type="text" name="city" value="{{ profile.city|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. New York">
+
+                        <label class="form-label text-secondary small fw-bold">🗺️ State / Region:</label>
+                        <input type="text" name="state" value="{{ profile.state|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. New York">
+
+                        <label class="form-label text-secondary small fw-bold">📝 About Yourself (Bio):</label>
+                        <textarea name="bio" class="form-control bg-dark text-white border-secondary mb-2" rows="3">{{ profile.bio }}</textarea>
+                        
+                        <button type="submit" name="update_bio" class="btn btn-rose btn-sm w-100">Save Profile Info</button>
+                    </form>
                 </div>
             </div>
 
