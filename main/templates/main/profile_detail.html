@@ -12,6 +12,7 @@
         .actions { margin: 25px 0; display: flex; gap: 12px; flex-wrap: wrap; }
         .btn { padding: 10px 22px; border-radius: 50px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; }
         .btn-like { background: #e11d48; color: white; }
+        .btn-liked { background: #10b981; color: white; }
         .btn-chat { background: #10b981; color: white; }
         .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 25px 0; background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; }
         .detail-item { font-size: 14px; color: #cbd5e1; }
@@ -46,10 +47,10 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Quick Actions (Heart Profile State Fixed) -->
     <div class="actions">
-        <a href="{% url 'toggle_like' target_profile.id %}" class="btn btn-like">
-            {% if has_liked %}❤️ Liked{% else %}🤍 Heart Profile{% endif %}
+        <a href="{% url 'toggle_like' target_profile.id %}" class="btn {% if has_liked %}btn-liked{% else %}btn-like{% endif %}">
+            {% if has_liked %}❤️ Liked (Unheart){% else %}🤍 Heart Profile{% endif %}
         </a>
         {% if can_see_questionnaire %}
             <a href="{% url 'chat_room' connection.id %}" class="btn btn-chat">💬 Open Chat</a>
@@ -73,8 +74,8 @@
         <div class="detail-item">⭐ <strong>Zodiac:</strong> {{ target_profile.zodiac_sign|default:"Not specified" }}</div>
     </div>
 
-    <!-- Photo Gallery Grid (Up to 26 Photos) -->
-    <h3 style="margin-top: 30px; color: #f8fafc;">Photo Gallery ({{ target_profile.photos.count }}/26)</h3>
+    <!-- Photo Gallery Grid (Capped at 7 Photos) -->
+    <h3 style="margin-top: 30px; color: #f8fafc;">Photo Gallery ({{ target_profile.photos.count }}/7)</h3>
     <div class="gallery-grid">
         {% for photo in target_profile.photos.all %}
             <img src="{{ photo.image.url }}" alt="Gallery Photo">

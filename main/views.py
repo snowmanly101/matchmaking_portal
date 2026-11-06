@@ -213,12 +213,20 @@ def upload_photos_view(request):
       messages.success(request, 'Main profile picture updated successfully!')
       return redirect('upload_photos')
     elif 'photos' in request.FILES:
+      current_count = profile.photos.count()
       images = request.FILES.getlist('photos')
-      if images:
-        for img in images:
-          ProfilePhoto.objects.create(profile=profile, image=img)
-        messages.success(request, f'{len(images)} photo(s) uploaded successfully!')
+      allowed_slots = 7 - current_count
+
+      if allowed_slots <= 0:
+        messages.error(request, 'Gallery limit reached! Maximum 7 photos allowed.')
         return redirect('upload_photos')
+
+      images_to_add = images[:allowed_slots]
+      for img in images_to_add:
+        ProfilePhoto.objects.create(profile=profile, image=img)
+      
+      messages.success(request, f'{len(images_to_add)} photo(s) uploaded successfully!')
+      return redirect('upload_photos')
 
   return render(request, 'main/upload_photos.html', {'profile': profile})
 
@@ -298,11 +306,40 @@ def portal_view(request):
     )
 
   if request.method == 'POST' and 'update_bio' in request.POST:
-    profile.bio = request.POST.get('bio', profile.bio)
     profile.city = request.POST.get('city', profile.city)
     profile.state = request.POST.get('state', profile.state)
+    profile.bio = request.POST.get('bio', profile.bio)
+    profile.favorite_music = request.POST.get('fav_music', getattr(profile, 'favorite_music', ''))
+    profile.interests = request.POST.get('interests', getattr(profile, 'interests', ''))
+    
+    # Update demographic and lifestyle dropdown fields
+    profile.height = request.POST.get('height', profile.height)
+    profile.body_type = request.POST.get('body_type', profile.body_type)
+    profile.ethnicity = request.POST.get('ethnicity', profile.ethnicity)
+    profile.marital_status = request.POST.get('marital_status', profile.marital_status)
+    profile.languages_spoken = request.POST.get('languages_spoken', profile.languages_spoken)
+    profile.smoking = request.POST.get('smoking', profile.smoking)
+    profile.drinking = request.POST.get('drinking', profile.drinking)
+    profile.dietary_preferences = request.POST.get('dietary_preferences', profile.dietary_preferences)
+    profile.children = request.POST.get('children', profile.children)
+    profile.education_level = request.POST.get('education_level', profile.education_level)
+    profile.religion = request.POST.get('religion', profile.religion)
+    profile.political_views = request.POST.get('political_views', profile.political_views)
+    profile.zodiac_sign = request.POST.get('zodiac_sign', profile.zodiac_sign)
+
+    # 9 Questionnaire fields update support
+    profile.q1_relationship_goal = request.POST.get('q1_relationship_goal', profile.q1_relationship_goal)
+    profile.q2_core_values = request.POST.get('q2_core_values', profile.q2_core_values)
+    profile.q3_dealbreakers = request.POST.get('q3_dealbreakers', profile.q3_dealbreakers)
+    profile.q4_love_language = request.POST.get('q4_love_language', profile.q4_love_language)
+    profile.q5_lifestyle_habits = request.POST.get('q5_lifestyle_habits', profile.q5_lifestyle_habits)
+    profile.q6_conflict_resolution = request.POST.get('q6_conflict_resolution', profile.q6_conflict_resolution)
+    profile.q7_future_vision = request.POST.get('q7_future_vision', profile.q7_future_vision)
+    profile.q8_partner_personality = request.POST.get('q8_partner_personality', profile.q8_partner_personality)
+    profile.q9_communication_preference = request.POST.get('q9_communication_preference', profile.q9_communication_preference)
+
     profile.save()
-    messages.success(request, 'Your profile info has been updated successfully!')
+    messages.success(request, 'Your profile details and questionnaire answers have been updated successfully!')
     return redirect('portal')
 
   if request.method == 'POST' and 'send_pin_request' in request.POST:
@@ -390,10 +427,13 @@ def view_profile_detail(request, profile_id):
       (models.Q(user1=target_profile) & models.Q(user2=profile))
   ).first()
 
+  has_liked = ProfileLike.objects.filter(from_user=profile, to_user=target_profile).exists()
+
   return render(request, 'main/profile_detail.html', {
       'profile': profile,
       'target_profile': target_profile,
       'connection': connection,
+      'has_liked': has_liked,
       'can_see_questionnaire': (connection and connection.is_active) or (profile == target_profile),
   })
 
