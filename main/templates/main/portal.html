@@ -18,15 +18,29 @@
         .dot-online { height: 10px; width: 10px; background-color: #10b981; border-radius: 50%; display: inline-block; }
         .dot-offline { height: 10px; width: 10px; background-color: #64748b; border-radius: 50%; display: inline-block; }
         
-        /* Bulletproof mobile dropdown fix: aligns dropdown correctly on mobile screens without overflowing */
+        /* Mailbox & Inbox Dropdown Styling */
         .dropdown-menu-dark { 
             background: #0f172a !important; 
             border: 1px solid rgba(244,63,94,0.3) !important; 
             z-index: 1050; 
-            max-width: 92vw !important; 
-            width: 350px !important;
-            left: auto !important;
-            right: 0 !important;
+            width: 380px;
+            max-width: 95vw;
+        }
+
+        /* Mobile specific centering fix: only applies to phones, leaves tablets and desktop unaffected */
+        @media (max-width: 768px) {
+            .navbar .dropdown {
+                position: static !important;
+            }
+            .navbar .dropdown-menu-dark {
+                position: absolute !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                top: 70px !important;
+                width: 92vw !important;
+                max-width: 92vw !important;
+            }
         }
     </style>
 </head>
