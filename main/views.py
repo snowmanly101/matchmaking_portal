@@ -13,15 +13,6 @@ from django.utils import timezone
 from .forms import (
     MatchProfileForm,
     SupportTicketForm,
-    Question1Form,
-    Question2Form,
-    Question3Form,
-    Question4Form,
-    Question5Form,
-    Question6Form,
-    Question7Form,
-    Question8Form,
-    Question9Form,
 )
 from .models import (
     MatchProfile,
@@ -165,6 +156,18 @@ def home_view(request):
           profile.registration_ip = client_ip
           profile.last_login_ip = client_ip
           profile.is_verified = True
+
+          # Capture compulsory 9 Questionnaire fields on registration
+          profile.q1_relationship_goal = request.POST.get('q1_relationship_goal', '')
+          profile.q2_core_values = request.POST.get('q2_core_values', '')
+          profile.q3_dealbreakers = request.POST.get('q3_dealbreakers', '')
+          profile.q4_love_language = request.POST.get('q4_love_language', '')
+          profile.q5_lifestyle_habits = request.POST.get('q5_lifestyle_habits', '')
+          profile.q6_conflict_resolution = request.POST.get('q6_conflict_resolution', '')
+          profile.q7_future_vision = request.POST.get('q7_future_vision', '')
+          profile.q8_partner_personality = request.POST.get('q8_partner_personality', '')
+          profile.q9_communication_preference = request.POST.get('q9_communication_preference', '')
+
           profile.save()
 
           if request.FILES.get('profile_image'):
@@ -312,7 +315,7 @@ def portal_view(request):
     profile.favorite_music = request.POST.get('fav_music', getattr(profile, 'favorite_music', ''))
     profile.interests = request.POST.get('interests', getattr(profile, 'interests', ''))
     
-    # Update demographic and lifestyle dropdown fields
+    # Save all Quick Facts & Lifestyle attributes
     profile.height = request.POST.get('height', profile.height)
     profile.body_type = request.POST.get('body_type', profile.body_type)
     profile.ethnicity = request.POST.get('ethnicity', profile.ethnicity)
@@ -327,7 +330,7 @@ def portal_view(request):
     profile.political_views = request.POST.get('political_views', profile.political_views)
     profile.zodiac_sign = request.POST.get('zodiac_sign', profile.zodiac_sign)
 
-    # 9 Questionnaire fields update support
+    # Save all 9 Questionnaire fields
     profile.q1_relationship_goal = request.POST.get('q1_relationship_goal', profile.q1_relationship_goal)
     profile.q2_core_values = request.POST.get('q2_core_values', profile.q2_core_values)
     profile.q3_dealbreakers = request.POST.get('q3_dealbreakers', profile.q3_dealbreakers)

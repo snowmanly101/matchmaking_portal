@@ -6,9 +6,7 @@
     <title>Begin Your Journey | AuraMatch</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body, html {
             margin: 0;
             padding: 0;
@@ -29,10 +27,7 @@
         }
         .overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 15, 30, 0.9);
             z-index: 1;
         }
@@ -59,22 +54,9 @@
             letter-spacing: 1px;
             display: inline-block;
         }
-        .hero-left h1 {
-            font-size: 40px;
-            line-height: 1.2;
-            margin: 0 0 15px 0;
-        }
-        .hero-subtitle {
-            font-size: 15px;
-            color: #cbd5e1;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-        .stats-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
+        .hero-left h1 { font-size: 40px; line-height: 1.2; margin: 0 0 15px 0; }
+        .hero-subtitle { font-size: 15px; color: #cbd5e1; margin-bottom: 25px; line-height: 1.5; }
+        .stats-container { display: flex; gap: 15px; margin-bottom: 25px; }
         .stat-box {
             background: rgba(255, 255, 255, 0.08);
             padding: 12px 15px;
@@ -83,16 +65,8 @@
             text-align: center;
             flex: 1;
         }
-        .stat-box h3 {
-            margin: 0;
-            font-size: 20px;
-            color: #ff3366;
-        }
-        .stat-box p {
-            margin: 5px 0 0;
-            font-size: 11px;
-            color: #94a3b8;
-        }
+        .stat-box h3 { margin: 0; font-size: 20px; color: #ff3366; }
+        .stat-box p { margin: 5px 0 0; font-size: 11px; color: #94a3b8; }
         .testimonial-box {
             background: linear-gradient(135deg, rgba(255, 51, 102, 0.15), rgba(255, 255, 255, 0.05));
             border-left: 4px solid #ff3366;
@@ -102,23 +76,9 @@
             transition: opacity 0.5s ease-in-out;
             margin-bottom: 30px;
         }
-        .testimonial-text {
-            font-style: italic;
-            color: #f8fafc;
-            margin: 0 0 8px 0;
-            font-size: 13px;
-        }
-        .testimonial-author {
-            font-size: 11px;
-            color: #cbd5e1;
-            font-weight: bold;
-        }
-        .forms-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-        }
+        .testimonial-text { font-style: italic; color: #f8fafc; margin: 0 0 8px 0; font-size: 13px; }
+        .testimonial-author { font-size: 11px; color: #cbd5e1; font-weight: bold; }
+        .forms-wrapper { display: flex; flex-direction: column; gap: 20px; width: 100%; }
         .form-container {
             background: rgba(15, 23, 42, 0.95);
             padding: 25px;
@@ -126,10 +86,10 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ffffff;
             width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
         }
-        .form-container p {
-            margin-bottom: 10px;
-        }
+        .form-container p { margin-bottom: 10px; }
         .form-container input, .form-container select, .form-container textarea {
             width: 100%;
             padding: 9px;
@@ -139,10 +99,7 @@
             border-radius: 5px;
             color: white;
         }
-        .form-container label {
-            font-size: 13px;
-            color: #cbd5e1;
-        }
+        .form-container label { font-size: 13px; color: #cbd5e1; }
         .submit-btn {
             background: #ff3366;
             color: white;
@@ -153,11 +110,9 @@
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 12px;
+            margin-top: 15px;
         }
-        .submit-btn:hover {
-            background: #e02e5b;
-        }
+        .submit-btn:hover { background: #e02e5b; }
         .login-btn {
             background: transparent;
             color: #ff3366;
@@ -171,26 +126,12 @@
             margin-top: 8px;
             transition: all 0.3s ease;
         }
-        .login-btn:hover {
-            background: rgba(255, 51, 102, 0.1);
-            color: #ff4d79;
-        }
-        .footer-note {
-            text-align: center;
-            margin-top: 12px;
-            font-size: 11px;
-            color: #94a3b8;
-        }
-        .footer-note a {
-            color: #ff3366;
-            text-decoration: none;
-        }
+        .login-btn:hover { background: rgba(255, 51, 102, 0.1); color: #ff4d79; }
+        .footer-note { text-align: center; margin-top: 12px; font-size: 11px; color: #94a3b8; }
+        .footer-note a { color: #ff3366; text-decoration: none; }
 
         @media (max-width: 900px) {
-            .hero-content-wrapper {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
+            .hero-content-wrapper { grid-template-columns: 1fr; gap: 30px; }
         }
     </style>
 </head>
@@ -226,7 +167,7 @@
                 </div>
 
                 <!-- Login Form Container -->
-                <div class="form-container" style="background: rgba(15, 23, 42, 0.85); border-color: rgba(255, 51, 102, 0.3);">
+                <div class="form-container" style="background: rgba(15, 23, 42, 0.85); border-color: rgba(255, 51, 102, 0.3); max-height: none;">
                     <h3 style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">Already Registered?</h3>
                     <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px;">Log in instantly with your registered email and password.</p>
                     
@@ -256,11 +197,11 @@
                 </div>
             </div>
 
-            <!-- Right Side: Registration Form -->
+            <!-- Right Side: Registration Form with Compulsory 9 Questionnaire Answers -->
             <div class="forms-wrapper">
                 <div class="form-container">
                     <h2 style="font-size: 20px; margin-top: 0; margin-bottom: 5px;">Start Your 14-Day Free Trial</h2>
-                    <p style="font-size: 12px; color: #cbd5e1;">No upfront charge. Card is only billed when a compatible match is delivered.</p>
+                    <p style="font-size: 12px; color: #cbd5e1;">Fill out your basic details and compulsory compatibility questionnaire to register.</p>
                     
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
@@ -274,10 +215,51 @@
 
                         {{ form.as_p }}
                         
-                        <!-- Explicit Password Field for Registration -->
+                        <!-- Explicit Password Field -->
                         <div style="margin-bottom: 15px;">
-                            <label for="id_password" style="font-size: 13px; color: #cbd5e1; display: block; margin-bottom: 4px;">Password:</label>
-                            <input type="password" id="id_password" name="password" placeholder="Create a secure password" required style="width: 100%; padding: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; color: white;">
+                            <label for="id_password" style="font-size: 13px; color: #cbd5e1; display: block; margin-bottom: 4px;">Password *</label>
+                            <input type="password" id="id_password" name="password" placeholder="Create a secure password" required>
+                        </div>
+
+                        <hr style="border-color: rgba(255,255,255,0.2); margin: 20px 0;">
+                        <h5 style="color: #ff3366; font-size: 15px; font-weight: bold; margin-bottom: 15px;">📝 Compulsory Compatibility Questionnaire</h5>
+
+                        <!-- 9 Questionnaire Fields (All Required) -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">1. Relationship Goal *</label>
+                            <input type="text" name="q1_relationship_goal" placeholder="e.g. Marriage, Long-term relationship" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">2. Core Values *</label>
+                            <input type="text" name="q2_core_values" placeholder="e.g. Honesty, Family, Ambition" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">3. Dealbreakers *</label>
+                            <input type="text" name="q3_dealbreakers" placeholder="e.g. Dishonesty, Smoking" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">4. Love Language *</label>
+                            <input type="text" name="q4_love_language" placeholder="e.g. Quality time, Words of affirmation" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">5. Lifestyle Habits *</label>
+                            <input type="text" name="q5_lifestyle_habits" placeholder="e.g. Fitness enthusiast, Homebody" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">6. Conflict Resolution *</label>
+                            <input type="text" name="q6_conflict_resolution" placeholder="e.g. Calm discussion, Open communication" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">7. Future Vision *</label>
+                            <input type="text" name="q7_future_vision" placeholder="e.g. Building a business & raising kids" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">8. Partner Personality *</label>
+                            <input type="text" name="q8_partner_personality" placeholder="e.g. Supportive, humorous, caring" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">9. Communication Preference *</label>
+                            <input type="text" name="q9_communication_preference" placeholder="e.g. Daily texting & evening phone calls" required>
                         </div>
                         
                         <button type="submit" name="register" class="submit-btn">Start Free Trial & Register</button>
