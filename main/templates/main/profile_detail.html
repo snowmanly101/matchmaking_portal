@@ -6,101 +6,110 @@
     <title>{{ target_profile.full_name }}'s Profile - Auramatch</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 30px 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; }
-        .header { display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
-        .header img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #e11d48; }
-        .actions { margin: 20px 0; display: flex; gap: 10px; }
-        .btn { padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; }
+        .container { max-width: 850px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .header { display: flex; align-items: center; gap: 25px; border-bottom: 1px solid #334155; padding-bottom: 25px; flex-wrap: wrap; }
+        .header img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 3px solid #e11d48; }
+        .actions { margin: 25px 0; display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn { padding: 10px 22px; border-radius: 50px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; }
         .btn-like { background: #e11d48; color: white; }
         .btn-chat { background: #10b981; color: white; }
-        .question-box { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #e11d48; }
-        .locked-notice { background: #334155; padding: 20px; border-radius: 8px; text-align: center; margin-top: 20px; }
-        input[type="text"] { padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; width: 200px; }
+        .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 25px 0; background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #334155; }
+        .detail-item { font-size: 14px; color: #cbd5e1; }
+        .detail-item strong { color: #f8fafc; }
+        .match-badge { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 13px; font-weight: 600; display: inline-block; margin-bottom: 15px; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin: 20px 0; }
+        .gallery-grid img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #334155; transition: transform 0.2s; }
+        .gallery-grid img:hover { transform: scale(1.05); border-color: #e11d48; }
+        .question-box { background: #0f172a; padding: 18px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #e11d48; }
+        .locked-notice { background: #334155; padding: 25px; border-radius: 12px; text-align: center; margin-top: 25px; }
+        input[type="text"] { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; width: 220px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <a href="{% url 'portal' %}" style="color: #94a3b8; text-decoration: none;">← Back to Portal</a>
+    <a href="{% url 'portal' %}" style="color: #94a3b8; text-decoration: none; font-weight: 600;">← Back to Discovery Deck</a>
 
-    <div class="header" style="margin-top: 15px;">
+    <div class="header" style="margin-top: 20px;">
         {% if target_profile.profile_image %}
             <img src="{{ target_profile.profile_image.url }}" alt="Profile">
         {% else %}
-            <img src="https://via.placeholder.com/120" alt="Profile">
+            <img src="https://via.placeholder.com/130" alt="Profile">
         {% endif %}
-        <div>
-            <h1 style="margin: 0;">{{ target_profile.full_name }}, {{ target_profile.age }}</h1>
-            <p style="color: #94a3b8; margin: 5px 0;">📍 {{ target_profile.country }} | 💼 {{ target_profile.occupation }} | 🚻 {{ target_profile.gender }}</p>
-            <p style="margin-top: 10px;"><em>"{{ target_profile.bio }}"</em></p>
+        <div style="flex: 1;">
+            <!-- Match Highlight Badge -->
+            <div class="match-badge">✨ Shared Compatibility Match</div>
+            
+            <h1 style="margin: 0; font-size: 28px;">{{ target_profile.full_name }}, {{ target_profile.age }}</h1>
+            <p style="color: #94a3b8; margin: 6px 0;">📍 {{ target_profile.country }} | 💼 {{ target_profile.occupation }} | 🚻 {{ target_profile.gender }}</p>
+            <p style="margin-top: 10px; font-style: italic; color: #e2e8f0;">"{{ target_profile.bio }}"</p>
         </div>
     </div>
 
-    <!-- Actions & PIN Sharing -->
+    <!-- Quick Actions -->
     <div class="actions">
         <a href="{% url 'toggle_like' target_profile.id %}" class="btn btn-like">
-            {% if has_liked %}❤️ Unheart{% else %}🤍 Heart Profile{% endif %}
+            {% if has_liked %}❤️ Liked{% else %}🤍 Heart Profile{% endif %}
         </a>
-
         {% if can_see_questionnaire %}
             <a href="{% url 'chat_room' connection.id %}" class="btn btn-chat">💬 Open Chat</a>
         {% endif %}
     </div>
 
-    <hr style="border-color: #334155; margin: 25px 0;">
+    <!-- The Details Grid (Physical & Lifestyle Attributes) -->
+    <h3 style="margin-top: 30px; color: #f8fafc;">Quick Facts & Lifestyle</h3>
+    <div class="details-grid">
+        <div class="detail-item">📏 <strong>Height:</strong> {{ target_profile.height|default:"Not specified" }}</div>
+        <div class="detail-item">🧬 <strong>Body Type:</strong> {{ target_profile.body_type|default:"Not specified" }}</div>
+        <div class="detail-item">🌍 <strong>Ethnicity:</strong> {{ target_profile.ethnicity|default:"Not specified" }}</div>
+        <div class="detail-item">💍 <strong>Marital Status:</strong> {{ target_profile.marital_status|default:"Not specified" }}</div>
+        <div class="detail-item">💬 <strong>Languages:</strong> {{ target_profile.languages_spoken|default:"English" }}</div>
+        <div class="detail-item">🚭 <strong>Smoking:</strong> {{ target_profile.smoking|default:"Not specified" }}</div>
+        <div class="detail-item">🍷 <strong>Drinking:</strong> {{ target_profile.drinking|default:"Not specified" }}</div>
+        <div class="detail-item">🥗 <strong>Diet:</strong> {{ target_profile.dietary_preferences|default:"Not specified" }}</div>
+        <div class="detail-item">👶 <strong>Children:</strong> {{ target_profile.children|default:"Not specified" }}</div>
+        <div class="detail-item">🎓 <strong>Education:</strong> {{ target_profile.education_level|default:"Not specified" }}</div>
+        <div class="detail-item">🕊️ <strong>Religion:</strong> {{ target_profile.religion|default:"Not specified" }}</div>
+        <div class="detail-item">⭐ <strong>Zodiac:</strong> {{ target_profile.zodiac_sign|default:"Not specified" }}</div>
+    </div>
+
+    <!-- Photo Gallery Grid (Up to 26 Photos) -->
+    <h3 style="margin-top: 30px; color: #f8fafc;">Photo Gallery ({{ target_profile.photos.count }}/26)</h3>
+    <div class="gallery-grid">
+        {% for photo in target_profile.photos.all %}
+            <img src="{{ photo.image.url }}" alt="Gallery Photo">
+        {% empty %}
+            <p style="color: #94a3b8; font-size: 13px;">No additional gallery photos uploaded yet.</p>
+        {% endfor %}
+    </div>
+
+    <hr style="border-color: #334155; margin: 30px 0;">
 
     <!-- QUESTIONNAIRE SECTION -->
     <h2>9 Deep Questionnaire Answers</h2>
 
     {% if can_see_questionnaire %}
-        <div class="question-box">
-            <h4>1. Relationship Goal</h4>
-            <p>{{ target_profile.q1_relationship_goal|default:"Not specified" }}</p>
-        </div>
-        <div class="question-box">
-            <h4>2. Core Values</h4>
-            <p>{{ target_profile.q2_core_values|default:"Not specified" }}</p>
-        </div>
-        <div class="question-box">
-            <h4>3. Dealbreakers</h4>
-            <p>{{ target_profile.q3_dealbreakers|default:"Not specified" }}</p>
-        </div>
-        <div class="question-box">
-            <h4>4. Love Language</h4>
-            <p>{{ target_profile.q4_love_language|default:"Not specified" }}</p>
-        </div>
-        <div class="question-box">
-            <h4>5. Lifestyle Habits</h4>
-            <p>{{ target_profile.q5_lifestyle_habits|default:"Not specified" }}</p>
-        </div>
-        <div class="question-box">
-            <h4>6. Conflict Resolution</h4>
-            <p>{{ target_profile.q6_conflict_resolution|default:"Not specified" }}</p>
-        </div>
-        <div class="question-box">
-            <h4>7. Future Vision</h4>
-            <p>{{ target_profile.q7_future_vision|default:"Not specified" }}</p>
-        </div>
-        <div class="question-box">
-            <h4>8. Partner Personality</h4>
-            <p>{{ target_profile.q8_partner_personality|default:"Not specified" }}</p>
-        </div>
-        <div class="question-box">
-            <h4>9. Communication Preference</h4>
-            <p>{{ target_profile.q9_communication_preference|default:"Not specified" }}</p>
-        </div>
+        <div class="question-box"><h4>1. Relationship Goal</h4><p>{{ target_profile.q1_relationship_goal|default:"Not specified" }}</p></div>
+        <div class="question-box"><h4>2. Core Values</h4><p>{{ target_profile.q2_core_values|default:"Not specified" }}</p></div>
+        <div class="question-box"><h4>3. Dealbreakers</h4><p>{{ target_profile.q3_dealbreakers|default:"Not specified" }}</p></div>
+        <div class="question-box"><h4>4. Love Language</h4><p>{{ target_profile.q4_love_language|default:"Not specified" }}</p></div>
+        <div class="question-box"><h4>5. Lifestyle Habits</h4><p>{{ target_profile.q5_lifestyle_habits|default:"Not specified" }}</p></div>
+        <div class="question-box"><h4>6. Conflict Resolution</h4><p>{{ target_profile.q6_conflict_resolution|default:"Not specified" }}</p></div>
+        <div class="question-box"><h4>7. Future Vision</h4><p>{{ target_profile.q7_future_vision|default:"Not specified" }}</p></div>
+        <div class="question-box"><h4>8. Partner Personality</h4><p>{{ target_profile.q8_partner_personality|default:"Not specified" }}</p></div>
+        <div class="question-box"><h4>9. Communication Preference</h4><p>{{ target_profile.q9_communication_preference|default:"Not specified" }}</p></div>
 
-        <form method="POST" action="{% url 'share_pin' target_profile.id %}" style="margin-top: 20px;">
+        <form method="POST" action="{% url 'share_pin' target_profile.id %}" style="margin-top: 25px;">
             {% csrf_token %}
             <input type="hidden" name="action" value="disable">
-            <button type="submit" style="background: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">Disable Connection</button>
+            <button type="submit" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">Disable Connection</button>
         </form>
     {% else %}
         <div class="locked-notice">
             🔒 <strong>Questionnaire Answers are Locked</strong>
-            <p style="font-size: 14px; color: #94a3b8;">Enter {{ target_profile.full_name }}'s Match PIN to reveal all 9 deep compatibility answers and unlock direct chat access.</p>
+            <p style="font-size: 14px; color: #94a3b8; margin: 10px 0 20px 0;">Enter {{ target_profile.full_name }}'s Match PIN to reveal all 9 deep compatibility answers and unlock direct chat access.</p>
 
-            <form method="POST" action="{% url 'share_pin' target_profile.id %}" style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+            <form method="POST" action="{% url 'share_pin' target_profile.id %}" style="display: flex; gap: 10px; justify-content: center; align-items: center;">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="share">
                 <input type="text" name="pin_code" placeholder="Enter Match PIN" required>
