@@ -2,6 +2,7 @@ import os
 import random
 import uuid
 import requests
+import resend
 from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
@@ -23,6 +24,24 @@ from .models import (
     ProfileLike,
     Notification,
 )
+
+# Initialize Resend API Key
+resend.api_key = getattr(settings, 'RESEND_API_KEY', os.environ.get('RESEND_API_KEY'))
+
+def send_auramatch_email(recipient_email, subject, message_html):
+  """Helper function to send emails via Resend API securely."""
+  if not recipient_email or not resend.api_key:
+    return
+  try:
+    params = {
+        "from": getattr(settings, 'DEFAULT_FROM_EMAIL', 'AuraMatch <onboarding@resend.dev>'),
+        "to": [recipient_email],
+        "subject": subject,
+        "html": message_html,
+    }
+    resend.Emails.send(params)
+  except Exception as e:
+    print(f"Resend Email Error: {e}")
 
 AFRICAN_COUNTRIES = [
     'Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Egypt', 'Morocco', 'Algeria',
@@ -157,7 +176,6 @@ def home_view(request):
           profile.last_login_ip = client_ip
           profile.is_verified = True
 
-          # Capture compulsory 9 Questionnaire fields on registration
           profile.q1_relationship_goal = request.POST.get('q1_relationship_goal', '')
           profile.q2_core_values = request.POST.get('q2_core_values', '')
           profile.q3_dealbreakers = request.POST.get('q3_dealbreakers', '')
@@ -247,7 +265,15 @@ def forgot_password_view(request):
       profile.reset_password_code = reset_code
       profile.save()
       request.session['reset_profile_id'] = profile.id
-      messages.success(request, f'Password reset code generated: {reset_code}')
+      
+      # SEND PASSWORD RESET EMAIL VIA RESEND
+      send_auramatch_email(
+          recipient_email=profile.email,
+          subject="🔐 Password Reset Code - AuraMatch",
+          message_html=f"<p>Hi <b>{profile.full_name}</b>,</p><p>Your password reset code is: <h2>{reset_code}</h2></p><p>Enter this code on the website to reset your password.</p>"
+      )
+      
+      messages.success(request, 'Password reset code has been sent to your email.')
       return redirect('reset_password')
     else:
       messages.error(request, 'No account matches this email address.')
@@ -291,7 +317,6 @@ def portal_view(request):
   if not profile.match_pin:
     profile.generate_pin()
 
-  # AUTOMATED MONTHLY SAFETY WARNING PUSH TO MAILBOX INBOX
   last_warning = Notification.objects.filter(
       user=profile, notification_type='warning'
   ).order_by('-created_at').first()
@@ -315,7 +340,6 @@ def portal_view(request):
     profile.favorite_music = request.POST.get('fav_music', getattr(profile, 'favorite_music', ''))
     profile.interests = request.POST.get('interests', getattr(profile, 'interests', ''))
     
-    # Save all Quick Facts & Lifestyle attributes
     profile.height = request.POST.get('height', profile.height)
     profile.body_type = request.POST.get('body_type', profile.body_type)
     profile.ethnicity = request.POST.get('ethnicity', profile.ethnicity)
@@ -330,7 +354,6 @@ def portal_view(request):
     profile.political_views = request.POST.get('political_views', profile.political_views)
     profile.zodiac_sign = request.POST.get('zodiac_sign', profile.zodiac_sign)
 
-    # Save all 9 Questionnaire fields
     profile.q1_relationship_goal = request.POST.get('q1_relationship_goal', profile.q1_relationship_goal)
     profile.q2_core_values = request.POST.get('q2_core_values', profile.q2_core_values)
     profile.q3_dealbreakers = request.POST.get('q3_dealbreakers', profile.q3_dealbreakers)
@@ -357,6 +380,14 @@ def portal_view(request):
       Notification.objects.create(
           user=target_user, sender=profile, notification_type='pin', title='🔑 New PIN Request', message=f'{profile.full_name} requested to connect with your Match PIN!'
       )
+      
+      # SEND EMAIL NOTIFICATION FOR PIN REQUEST
+      send_auramatch_email(
+          recipient_email=target_user.email,
+          subject="🔑 New Match PIN Request on AuraMatch!",
+          message_html=f"<p>Hi <b>{target_user.full_name}</b>,</p><p><b>{profile.full_name}</b> just requested your Match PIN on AuraMatch! Log in to your mailbox to approve or decline.</p>"
+      )
+
       messages.success(request, f'PIN Request sent to {target_user.full_name}!')
     else:
       messages.info(request, 'A request or connection already exists.')
@@ -459,6 +490,14 @@ def toggle_like_view(request, profile_id):
       Notification.objects.create(
           user=target_profile, sender=profile, notification_type='like', title='❤️ New Profile Like', message=f'{profile.full_name} liked your profile!'
       )
+      
+      # SEND EMAIL NOTIFICATION FOR LIKE
+      send_auramatch_email(
+          recipient_email=target_profile.email,
+          subject="❤️ Someone Liked Your Profile on AuraMatch!",
+          message_html=f"<p>Hi <b>{target_profile.full_name}</b>,</p><p><b>{profile.full_name}</b> liked your profile on AuraMatch! Log in to check them out.</p>"
+      )
+
       messages.success(request, f'You liked {target_profile.full_name}!')
 
   return redirect('view_profile', profile_id=target_profile.id)
