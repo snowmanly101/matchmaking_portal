@@ -101,4 +101,4 @@ SECURE_HSTS_PRELOAD = True
 # RESEND API EMAIL CONFIGURATION
 # ==========================================
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
-DEFAULT_FROM_EMAIL = 'AuraMatch <onboarding@resend.dev>'
+DEFAULT_FROM_EMAIL = 'AuraMatch Support <support@auramatch.forum>'
