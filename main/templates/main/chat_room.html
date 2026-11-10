@@ -117,7 +117,10 @@
                 <small class="text-rose" style="color: #34d399; font-size: 10px;">● Click to view profile</small>
             </div>
         </a>
-        <a href="{% url 'portal' %}" class="btn-profile">My Portal</a>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'portal' %}" class="btn-profile" style="background: transparent; border-color: rgba(255,255,255,0.2); color: #cbd5e1;">Portal</a>
+            <a href="{% url 'view_profile' profile.id %}" class="btn-profile">My Profile</a>
+        </div>
     </div>
 
     <!-- Chat Messages Feed -->
@@ -193,7 +196,6 @@
     window.addEventListener('load', forceScrollBottom);
     forceScrollBottom();
 
-    // Auto-polling for instant live chat without manual refresh
     let lastMsgId = 0;
     const bubbles = document.querySelectorAll('.message-bubble');
     if (bubbles.length > 0) {
@@ -235,7 +237,6 @@
         .catch(err => console.log('Polling check error:', err));
     }, 3000);
 
-    // AJAX form submission for instant sending without page reload
     const chatForm = document.getElementById('chatForm');
     const messageInput = document.getElementById('messageInput');
     const imageInput = document.getElementById('chatImageInput');
@@ -259,12 +260,10 @@
             }
         })
         .catch(err => {
-            // Fallback standard submit if AJAX fails
             chatForm.submit();
         });
     });
 
-    // Emoji picker toggle
     const emojiBtn = document.getElementById('emojiBtn');
     const emojiContainer = document.getElementById('emoji-picker-container');
     const emojiGrid = document.getElementById('emojiGrid');
