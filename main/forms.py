@@ -22,10 +22,34 @@ COUNTRIES_LIST = [
     ('United Arab Emirates', 'United Arab Emirates'),
 ]
 
+GENDER_CHOICES = [
+    ('', 'Select Gender'),
+    ('Male', 'Male'),
+    ('Female', 'Female'),
+    ('Non-Binary', 'Non-Binary'),
+]
+
+SEEKING_CHOICES = [
+    ('', 'Seeking Who?'),
+    ('Female', 'Female'),
+    ('Male', 'Male'),
+    ('Everyone', 'Everyone'),
+]
+
 
 class MatchProfileForm(forms.ModelForm):
     country = forms.ChoiceField(
         choices=COUNTRIES_LIST,
+        widget=forms.Select(attrs={'class': 'form-select bg-dark text-white border-secondary', 'style': 'background-color: #212529 !important; color: #ffffff !important;'})
+    )
+    
+    gender = forms.ChoiceField(
+        choices=GENDER_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select bg-dark text-white border-secondary', 'style': 'background-color: #212529 !important; color: #ffffff !important;'})
+    )
+
+    seeking = forms.ChoiceField(
+        choices=SEEKING_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select bg-dark text-white border-secondary', 'style': 'background-color: #212529 !important; color: #ffffff !important;'})
     )
 
@@ -48,8 +72,6 @@ class MatchProfileForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control bg-dark text-white border-secondary', 'placeholder': 'name@example.com'}),
             'age': forms.NumberInput(attrs={'class': 'form-control bg-dark text-white border-secondary', 'placeholder': 'Age'}),
             'phone': forms.TextInput(attrs={'class': 'form-control bg-dark text-white border-secondary', 'placeholder': '+1 (555) 000-0000'}),
-            'gender': forms.Select(attrs={'class': 'form-select bg-dark text-white border-secondary', 'style': 'background-color: #212529 !important; color: #ffffff !important;'}),
-            'seeking': forms.Select(attrs={'class': 'form-select bg-dark text-white border-secondary', 'style': 'background-color: #212529 !important; color: #ffffff !important;'}),
             'occupation': forms.TextInput(attrs={'class': 'form-control bg-dark text-white border-secondary', 'placeholder': 'Profession / Industry'}),
             'bio': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3, 'placeholder': 'Tell us about yourself...'}),
             'profile_image': forms.ClearableFileInput(attrs={'class': 'form-control bg-dark text-white border-secondary'}),
