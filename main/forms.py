@@ -78,6 +78,33 @@ class MatchProfileForm(forms.ModelForm):
         }
 
 
+class QuestionnaireForm(forms.ModelForm):
+    class Meta:
+        model = MatchProfile
+        fields = [
+            'q1_relationship_goal',
+            'q2_core_values',
+            'q3_dealbreakers',
+            'q4_love_language',
+            'q5_lifestyle_habits',
+            'q6_conflict_resolution',
+            'q7_future_vision',
+            'q8_partner_personality',
+            'q9_communication_preference',
+        ]
+        widgets = {
+            'q1_relationship_goal': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'What are your relationship goals?'}),
+            'q2_core_values': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'What core values matter most?'}),
+            'q3_dealbreakers': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'What are absolute dealbreakers?'}),
+            'q4_love_language': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'How do you express love?'}),
+            'q5_lifestyle_habits': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'Describe your daily habits.'}),
+            'q6_conflict_resolution': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'How do you resolve conflicts?'}),
+            'q7_future_vision': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'What is your vision for the future?'}),
+            'q8_partner_personality': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'What personality traits do you admire?'}),
+            'q9_communication_preference': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 2, 'placeholder': 'Preferred communication style?'}),
+        }
+
+
 class SupportTicketForm(forms.ModelForm):
     class Meta:
         model = SupportTicket
@@ -87,58 +114,3 @@ class SupportTicketForm(forms.ModelForm):
             'subject': forms.TextInput(attrs={'class': 'form-control bg-dark text-white border-secondary', 'placeholder': 'Complaint / Subject'}),
             'message': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3, 'placeholder': 'Describe your issue...'}),
         }
-
-
-class Question1Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q1_relationship_goal']
-        widgets = {'q1_relationship_goal': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}
-
-class Question2Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q2_core_values']
-        widgets = {'q2_core_values': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}
-
-class Question3Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q3_dealbreakers']
-        widgets = {'q3_dealbreakers': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}
-
-class Question4Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q4_love_language']
-        widgets = {'q4_love_language': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}
-
-class Question5Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q5_lifestyle_habits']
-        widgets = {'q5_lifestyle_habits': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}
-
-class Question6Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q6_conflict_resolution']
-        widgets = {'q6_conflict_resolution': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}
-
-class Question7Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q7_future_vision']
-        widgets = {'q7_future_vision': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}
-
-class Question8Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q8_partner_personality']
-        widgets = {'q8_partner_personality': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}
-
-class Question9Form(forms.ModelForm):
-    class Meta:
-        model = MatchProfile
-        fields = ['q9_communication_preference']
-        widgets = {'q9_communication_preference': forms.Textarea(attrs={'class': 'form-control bg-dark text-white border-secondary', 'rows': 3})}

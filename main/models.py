@@ -13,14 +13,15 @@ class MatchProfile(models.Model):
   phone = models.CharField(max_length=30)
   gender = models.CharField(
       max_length=20,
-      choices=[('Male', 'Male'), ('Female', 'Female')],
+      choices=[('Male', 'Male'), ('Female', 'Female'), ('Non-Binary', 'Non-Binary')],
       default='Male',
   )
   seeking = models.CharField(
       max_length=20,
       choices=[
-          ('Female', 'Female (Seeking Women)'),
-          ('Male', 'Male (Seeking Men)'),
+          ('Female', 'Female'),
+          ('Male', 'Male'),
+          ('Everyone', 'Everyone'),
       ],
       default='Female',
   )
@@ -31,108 +32,20 @@ class MatchProfile(models.Model):
   bio = models.TextField()
   profile_image = models.ImageField(upload_to='profiles/', blank=True, null=True)
 
-  # NEW PHYSICAL & DEMOGRAPHIC FIELDS
-  height = models.CharField(
-      max_length=20,
-      choices=[
-          ('Under 5\'0"', 'Under 5\'0"'), ('5\'0" - 5\'3"', '5\'0" - 5\'3"'),
-          ('5\'4" - 5\'7"', '5\'4" - 5\'7"'), ('5\'8" - 5\'11"', '5\'8" - 5\'11"'),
-          ('6\'0" - 6\'3"', '6\'0" - 6\'3"'), ('6\'4"+', '6\'4"+')
-      ],
-      blank=True, null=True
-  )
-  body_type = models.CharField(
-      max_length=30,
-      choices=[
-          ('Slim', 'Slim'), ('Athletic', 'Athletic'),
-          ('Average', 'Average'), ('Curvy', 'Curvy'), ('Plus-size', 'Plus-size')
-      ],
-      blank=True, null=True
-  )
-  ethnicity = models.CharField(
-      max_length=50,
-      choices=[
-          ('Asian', 'Asian'), ('Black/African descent', 'Black/African descent'),
-          ('Hispanic/Latino', 'Hispanic/Latino'), ('White/Caucasian', 'White/Caucasian'),
-          ('Mixed', 'Mixed'), ('Other', 'Other')
-      ],
-      blank=True, null=True
-  )
-  marital_status = models.CharField(
-      max_length=30,
-      choices=[
-          ('Single', 'Single'), ('Divorced', 'Divorced'),
-          ('Separated', 'Separated'), ('Widowed', 'Widowed')
-      ],
-      blank=True, null=True
-  )
+  height = models.CharField(max_length=20, blank=True, null=True)
+  body_type = models.CharField(max_length=30, blank=True, null=True)
+  ethnicity = models.CharField(max_length=50, blank=True, null=True)
+  marital_status = models.CharField(max_length=30, blank=True, null=True)
   languages_spoken = models.CharField(max_length=255, blank=True, null=True, default='English')
 
-  # NEW LIFESTYLE & VALUES FIELDS
-  smoking = models.CharField(
-      max_length=30,
-      choices=[('Non-smoker', 'Non-smoker'), ('Occasional', 'Occasional'), ('Regular', 'Regular')],
-      blank=True, null=True
-  )
-  drinking = models.CharField(
-      max_length=30,
-      choices=[('Never', 'Never'), ('Socially', 'Socially'), ('Frequently', 'Frequently')],
-      blank=True, null=True
-  )
-  dietary_preferences = models.CharField(
-      max_length=50,
-      choices=[
-          ('Omnivore', 'Omnivore'), ('Vegetarian', 'Vegetarian'),
-          ('Vegan', 'Vegan'), ('Halal', 'Halal'), ('Kosher', 'Kosher'), ('Other', 'Other')
-      ],
-      blank=True, null=True
-  )
-  children = models.CharField(
-      max_length=50,
-      choices=[
-          ('Have kids & want more', 'Have kids & want more'),
-          ('Have kids & don\'t want more', 'Have kids & don\'t want more'),
-          ('Don\'t have kids & want', 'Don\'t have kids & want'),
-          ('Don\'t have kids & don\'t want', 'Don\'t have kids & don\'t want')
-      ],
-      blank=True, null=True
-  )
-  education_level = models.CharField(
-      max_length=50,
-      choices=[
-          ('High School', 'High School'), ('Associate Degree', 'Associate Degree'),
-          ('Bachelor\'s Degree', 'Bachelor\'s Degree'), ('Master\'s Degree', 'Master\'s Degree'),
-          ('Doctorate/PhD', 'Doctorate/PhD')
-      ],
-      blank=True, null=True
-  )
-  religion = models.CharField(
-      max_length=50,
-      choices=[
-          ('Christianity', 'Christianity'), ('Islam', 'Islam'), ('Judaism', 'Judaism'),
-          ('Hinduism', 'Hinduism'), ('Buddhism', 'Buddhism'), ('Spiritual', 'Spiritual'),
-          ('Non-religious/Atheist', 'Non-religious/Atheist'), ('Other', 'Other')
-      ],
-      blank=True, null=True
-  )
-  political_views = models.CharField(
-      max_length=50,
-      choices=[
-          ('Liberal', 'Liberal'), ('Moderate', 'Moderate'),
-          ('Conservative', 'Conservative'), ('Apolitical', 'Apolitical'), ('Other', 'Other')
-      ],
-      blank=True, null=True
-  )
-  zodiac_sign = models.CharField(
-      max_length=30,
-      choices=[
-          ('Aries', 'Aries'), ('Taurus', 'Taurus'), ('Gemini', 'Gemini'),
-          ('Cancer', 'Cancer'), ('Leo', 'Leo'), ('Virgo', 'Virgo'),
-          ('Libra', 'Libra'), ('Scorpio', 'Scorpio'), ('Sagittarius', 'Sagittarius'),
-          ('Capricorn', 'Capricorn'), ('Aquarius', 'Aquarius'), ('Pisces', 'Pisces')
-      ],
-      blank=True, null=True
-  )
+  smoking = models.CharField(max_length=30, blank=True, null=True)
+  drinking = models.CharField(max_length=30, blank=True, null=True)
+  dietary_preferences = models.CharField(max_length=50, blank=True, null=True)
+  children = models.CharField(max_length=50, blank=True, null=True)
+  education_level = models.CharField(max_length=50, blank=True, null=True)
+  religion = models.CharField(max_length=50, blank=True, null=True)
+  political_views = models.CharField(max_length=50, blank=True, null=True)
+  zodiac_sign = models.CharField(max_length=30, blank=True, null=True)
 
   registration_ip = models.GenericIPAddressField(blank=True, null=True)
   last_login_ip = models.GenericIPAddressField(blank=True, null=True)

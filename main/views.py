@@ -8,11 +8,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db import models
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import (
     MatchProfileForm,
+    QuestionnaireForm,
     SupportTicketForm,
 )
 from .models import (
@@ -29,12 +31,11 @@ from .models import (
 resend.api_key = getattr(settings, 'RESEND_API_KEY', os.environ.get('RESEND_API_KEY'))
 
 def send_auramatch_email(recipient_email, subject, message_html):
-  """Helper function to send emails via Resend API securely."""
   if not recipient_email or not resend.api_key:
     return
   try:
     params = {
-        "from": getattr(settings, 'DEFAULT_FROM_EMAIL', 'AuraMatch <onboarding@resend.dev>'),
+        "from": getattr(settings, 'DEFAULT_FROM_EMAIL', 'AuraMatch Support <support@auramatch.forum>'),
         "to": [recipient_email],
         "subject": subject,
         "html": message_html,
@@ -175,17 +176,6 @@ def home_view(request):
           profile.registration_ip = client_ip
           profile.last_login_ip = client_ip
           profile.is_verified = True
-
-          profile.q1_relationship_goal = request.POST.get('q1_relationship_goal', '')
-          profile.q2_core_values = request.POST.get('q2_core_values', '')
-          profile.q3_dealbreakers = request.POST.get('q3_dealbreakers', '')
-          profile.q4_love_language = request.POST.get('q4_love_language', '')
-          profile.q5_lifestyle_habits = request.POST.get('q5_lifestyle_habits', '')
-          profile.q6_conflict_resolution = request.POST.get('q6_conflict_resolution', '')
-          profile.q7_future_vision = request.POST.get('q7_future_vision', '')
-          profile.q8_partner_personality = request.POST.get('q8_partner_personality', '')
-          profile.q9_communication_preference = request.POST.get('q9_communication_preference', '')
-
           profile.save()
 
           if request.FILES.get('profile_image'):
@@ -193,15 +183,38 @@ def home_view(request):
             profile.save()
 
           create_bot_welcome_message(profile)
-          request.session['user_id'] = profile.id
-          messages.success(request, 'Account created successfully! Welcome to your dashboard.')
-          return redirect('portal')
+          request.session['pending_questionnaire_user_id'] = profile.id
+          messages.success(request, 'Account created successfully! Please complete your questionnaire below.')
+          return redirect('questionnaire_step')
         except Exception as db_err:
           messages.error(request, f'An error occurred: {str(db_err)}')
       else:
         messages.error(request, 'Please correct the registration errors below.')
 
   return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
+
+
+def questionnaire_step_view(request):
+  user_id = request.session.get('pending_questionnaire_user_id') or request.session.get('user_id')
+  if not user_id:
+    return redirect('home')
+  
+  profile = get_object_or_404(MatchProfile, id=user_id)
+  form = QuestionnaireForm(instance=profile)
+
+  if request.method == 'POST':
+    form = QuestionnaireForm(request.POST, instance=profile)
+    if form.is_valid():
+      form.save()
+      request.session['user_id'] = profile.id
+      if 'pending_questionnaire_user_id' in request.session:
+        del request.session['pending_questionnaire_user_id']
+      messages.success(request, 'Questionnaire completed successfully! Welcome to your dashboard.')
+      return redirect('portal')
+    else:
+      messages.error(request, 'Please correct the errors in your questionnaire.')
+
+  return render(request, 'main/questionnaire.html', {'profile': profile, 'form': form})
 
 
 def verify_email_view(request):
@@ -266,7 +279,6 @@ def forgot_password_view(request):
       profile.save()
       request.session['reset_profile_id'] = profile.id
       
-      # SEND PASSWORD RESET EMAIL VIA RESEND
       send_auramatch_email(
           recipient_email=profile.email,
           subject="🔐 Password Reset Code - AuraMatch",
@@ -298,10 +310,6 @@ def reset_password_view(request):
         return redirect('home')
     messages.error(request, 'Invalid code or password.')
   return render(request, 'main/reset_password.html')
-
-
-def questionnaire_step_view(request, step):
-  return redirect('portal')
 
 
 def portal_view(request):
@@ -381,7 +389,6 @@ def portal_view(request):
           user=target_user, sender=profile, notification_type='pin', title='🔑 New PIN Request', message=f'{profile.full_name} requested to connect with your Match PIN!'
       )
       
-      # SEND EMAIL NOTIFICATION FOR PIN REQUEST
       send_auramatch_email(
           recipient_email=target_user.email,
           subject="🔑 New Match PIN Request on AuraMatch!",
@@ -426,7 +433,6 @@ def portal_view(request):
 
   all_users = MatchProfile.objects.exclude(id=profile.id).exclude(email='bot@auramatch.forum').filter(is_locked=False)
   five_mins_ago = timezone.now() - timedelta(minutes=5)
-  active_users = [u for u in all_users]
   online_count = MatchProfile.objects.filter(last_seen__gte=five_mins_ago).count()
   active_connections = MatchConnection.objects.filter((models.Q(user1=profile) | models.Q(user2=profile)) & models.Q(is_active=True))
   pending_requests = MatchConnection.objects.filter(user2=profile, is_active=False)
@@ -434,11 +440,29 @@ def portal_view(request):
 
   return render(request, 'main/portal.html', {
       'profile': profile,
-      'active_users': active_users,
+      'active_users': all_users,
       'connections': active_connections,
       'pending_requests': pending_requests,
       'notifications': notifications,
       'online_count': online_count,
+  })
+
+
+def api_check_updates_view(request):
+  """AJAX endpoint for instant real-time live polling without page reloads."""
+  user_id = request.session.get('user_id')
+  if not user_id:
+    return JsonResponse({'error': 'Unauthorized'}, status=401)
+  
+  profile = get_object_or_404(MatchProfile, id=user_id)
+  update_last_seen(profile)
+
+  notifs_count = Notification.objects.filter(user=profile, is_read=False).count()
+  online_count = MatchProfile.objects.filter(last_seen__gte=timezone.now() - timedelta(minutes=5)).count()
+  
+  return JsonResponse({
+      'unread_notifications': notifs_count,
+      'online_count': online_count
   })
 
 
@@ -491,7 +515,6 @@ def toggle_like_view(request, profile_id):
           user=target_profile, sender=profile, notification_type='like', title='❤️ New Profile Like', message=f'{profile.full_name} liked your profile!'
       )
       
-      # SEND EMAIL NOTIFICATION FOR LIKE
       send_auramatch_email(
           recipient_email=target_profile.email,
           subject="❤️ Someone Liked Your Profile on AuraMatch!",
@@ -529,7 +552,24 @@ def chat_room_view(request, connection_id):
     image = request.FILES.get('chat_image')
     if text or image:
       ChatMessage.objects.create(connection=connection, sender=profile, message_text=text, image=image)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+      return JsonResponse({'status': 'success'})
     return redirect('chat_room', connection_id=connection.id)
+
+  if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.GET.get('fetch_messages') == '1':
+    last_id = int(request.GET.get('last_id', 0))
+    new_msgs = ChatMessage.objects.filter(connection=connection, id__gt=last_id).order_by('sent_at')
+    msgs_data = []
+    for m in new_msgs:
+      msgs_data.append({
+          'id': m.id,
+          'sender_name': m.sender.full_name,
+          'is_me': m.sender == profile,
+          'message_text': m.message_text or '',
+          'image_url': m.image.url if m.image else '',
+          'sent_at': m.sent_at.strftime('%H:%M'),
+      })
+    return JsonResponse({'messages': msgs_data})
 
   messages_list = ChatMessage.objects.filter(connection=connection).order_by('sent_at')
 

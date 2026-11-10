@@ -18,7 +18,6 @@
         .dot-online { height: 10px; width: 10px; background-color: #10b981; border-radius: 50%; display: inline-block; }
         .dot-offline { height: 10px; width: 10px; background-color: #64748b; border-radius: 50%; display: inline-block; }
         
-        /* Mailbox & Inbox Dropdown Styling */
         .dropdown-menu-dark { 
             background: #0f172a !important; 
             border: 1px solid rgba(244,63,94,0.3) !important; 
@@ -27,11 +26,8 @@
             max-width: 95vw;
         }
 
-        /* Mobile specific centering fix: only applies to phones, leaves tablets and desktop unaffected */
         @media (max-width: 768px) {
-            .navbar .dropdown {
-                position: static !important;
-            }
+            .navbar .dropdown { position: static !important; }
             .navbar .dropdown-menu-dark {
                 position: absolute !important;
                 left: 50% !important;
@@ -70,7 +66,7 @@
                             {% for req in pending_requests %}
                                 <li class="bg-dark p-2 rounded mb-2 border border-warning">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <strong class="text-white small">{{ req.user1.full_name }}</strong>
+                                        <a href="{% url 'view_profile' req.user1.id %}" class="text-white fw-bold small text-decoration-none hover-warning">{{ req.user1.full_name }} ↗</a>
                                         <span class="badge bg-danger" style="font-size: 10px;">PIN: {{ req.shared_pin }}</span>
                                     </div>
                                     <div class="d-flex gap-2 mt-2">
@@ -116,13 +112,19 @@
 
                         <li><hr class="dropdown-divider border-secondary my-2"></li>
 
-                        <!-- LIVE NOTIFICATIONS & SAFETY WARNINGS -->
+                        <!-- LIVE NOTIFICATIONS & CLICKABLE SENDER PROFILES -->
                         <li><h6 class="text-warning mb-2 fw-bold">🔔 Mailbox Notifications</h6></li>
                         {% if notifications %}
                             {% for notif in notifications %}
                                 <li class="bg-dark p-2 rounded mb-1 border border-secondary">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <strong class="text-white small" style="font-size: 11px;">{{ notif.title }}</strong>
+                                        {% if notif.sender %}
+                                            <a href="{% url 'view_profile' notif.sender.id %}" class="text-warning fw-bold small text-decoration-none" style="font-size: 11px;">
+                                                {{ notif.title }} ↗
+                                            </a>
+                                        {% else %}
+                                            <strong class="text-white small" style="font-size: 11px;">{{ notif.title }}</strong>
+                                        {% endif %}
                                         <small class="text-muted" style="font-size: 9px;">{{ notif.created_at|timesince }} ago</small>
                                     </div>
                                     <p class="text-secondary small mb-0 mt-1" style="font-size: 10px; line-height: 1.3;">{{ notif.message }}</p>
@@ -153,7 +155,6 @@
     </nav>
 
     <div class="container py-5">
-        
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-danger shadow-sm mb-4">{{ message }}</div>
@@ -161,7 +162,7 @@
         {% endif %}
 
         <div class="row g-4">
-            <!-- LEFT COLUMN: Profile & Comprehensive Quick Facts / Questionnaire Editor -->
+            <!-- LEFT COLUMN: Profile & Questionnaire Editor -->
             <div class="col-lg-4">
                 <div class="glass-card p-4 text-center">
                     
@@ -192,15 +193,15 @@
                         <span class="badge bg-danger fs-4 px-3 py-2">{{ profile.match_pin }}</span>
                     </div>
 
-                    <!-- COMPREHENSIVE PROFILE & QUICK FACTS FORM -->
+                    <!-- PROFILE & QUESTIONNAIRE UPDATE FORM -->
                     <form method="POST" class="text-start">
                         {% csrf_token %}
                         <h6 class="text-warning fw-bold mb-2 border-bottom pb-1">📍 Basic Information</h6>
                         <label class="form-label text-secondary small fw-bold">City:</label>
-                        <input type="text" name="city" value="{{ profile.city|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Texas">
+                        <input type="text" name="city" value="{{ profile.city|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2">
 
                         <label class="form-label text-secondary small fw-bold">State / Region:</label>
-                        <input type="text" name="state" value="{{ profile.state|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Texas">
+                        <input type="text" name="state" value="{{ profile.state|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2">
 
                         <h6 class="text-warning fw-bold mt-3 mb-2 border-bottom pb-1">🧬 Quick Facts & Lifestyle</h6>
                         
@@ -215,84 +216,6 @@
                             <option value="6'4&quot;+" {% if profile.height == '6\'4"+' %}selected{% endif %}>6'4"+</option>
                         </select>
 
-                        <label class="form-label text-secondary small fw-bold">Body Type:</label>
-                        <select name="body_type" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Body Type</option>
-                            <option value="Slim" {% if profile.body_type == 'Slim' %}selected{% endif %}>Slim</option>
-                            <option value="Athletic" {% if profile.body_type == 'Athletic' %}selected{% endif %}>Athletic</option>
-                            <option value="Average" {% if profile.body_type == 'Average' %}selected{% endif %}>Average</option>
-                            <option value="Curvy" {% if profile.body_type == 'Curvy' %}selected{% endif %}>Curvy</option>
-                            <option value="Plus-size" {% if profile.body_type == 'Plus-size' %}selected{% endif %}>Plus-size</option>
-                        </select>
-
-                        <label class="form-label text-secondary small fw-bold">Ethnicity:</label>
-                        <select name="ethnicity" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Ethnicity</option>
-                            <option value="Asian" {% if profile.ethnicity == 'Asian' %}selected{% endif %}>Asian</option>
-                            <option value="Black/African descent" {% if profile.ethnicity == 'Black/African descent' %}selected{% endif %}>Black/African descent</option>
-                            <option value="Hispanic/Latino" {% if profile.ethnicity == 'Hispanic/Latino' %}selected{% endif %}>Hispanic/Latino</option>
-                            <option value="White/Caucasian" {% if profile.ethnicity == 'White/Caucasian' %}selected{% endif %}>White/Caucasian</option>
-                            <option value="Mixed" {% if profile.ethnicity == 'Mixed' %}selected{% endif %}>Mixed</option>
-                            <option value="Other" {% if profile.ethnicity == 'Other' %}selected{% endif %}>Other</option>
-                        </select>
-
-                        <label class="form-label text-secondary small fw-bold">Marital Status:</label>
-                        <select name="marital_status" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Marital Status</option>
-                            <option value="Single" {% if profile.marital_status == 'Single' %}selected{% endif %}>Single</option>
-                            <option value="Divorced" {% if profile.marital_status == 'Divorced' %}selected{% endif %}>Divorced</option>
-                            <option value="Separated" {% if profile.marital_status == 'Separated' %}selected{% endif %}>Separated</option>
-                            <option value="Widowed" {% if profile.marital_status == 'Widowed' %}selected{% endif %}>Widowed</option>
-                        </select>
-
-                        <label class="form-label text-secondary small fw-bold">Languages Spoken:</label>
-                        <input type="text" name="languages_spoken" value="{{ profile.languages_spoken|default:'English' }}" class="form-control bg-dark text-white border-secondary mb-2">
-
-                        <label class="form-label text-secondary small fw-bold">Smoking Habit:</label>
-                        <select name="smoking" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Smoking</option>
-                            <option value="Non-smoker" {% if profile.smoking == 'Non-smoker' %}selected{% endif %}>Non-smoker</option>
-                            <option value="Occasional" {% if profile.smoking == 'Occasional' %}selected{% endif %}>Occasional</option>
-                            <option value="Regular" {% if profile.smoking == 'Regular' %}selected{% endif %}>Regular</option>
-                        </select>
-
-                        <label class="form-label text-secondary small fw-bold">Drinking Habit:</label>
-                        <select name="drinking" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Drinking</option>
-                            <option value="Never" {% if profile.drinking == 'Never' %}selected{% endif %}>Never</option>
-                            <option value="Socially" {% if profile.drinking == 'Socially' %}selected{% endif %}>Socially</option>
-                            <option value="Frequently" {% if profile.drinking == 'Frequently' %}selected{% endif %}>Frequently</option>
-                        </select>
-
-                        <label class="form-label text-secondary small fw-bold">Dietary Preferences:</label>
-                        <select name="dietary_preferences" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Diet</option>
-                            <option value="Omnivore" {% if profile.dietary_preferences == 'Omnivore' %}selected{% endif %}>Omnivore</option>
-                            <option value="Vegetarian" {% if profile.dietary_preferences == 'Vegetarian' %}selected{% endif %}>Vegetarian</option>
-                            <option value="Vegan" {% if profile.dietary_preferences == 'Vegan' %}selected{% endif %}>Vegan</option>
-                            <option value="Halal" {% if profile.dietary_preferences == 'Halal' %}selected{% endif %}>Halal</option>
-                            <option value="Kosher" {% if profile.dietary_preferences == 'Kosher' %}selected{% endif %}>Kosher</option>
-                        </select>
-
-                        <label class="form-label text-secondary small fw-bold">Children:</label>
-                        <select name="children" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Children</option>
-                            <option value="Have kids & want more" {% if profile.children == 'Have kids & want more' %}selected{% endif %}>Have kids & want more</option>
-                            <option value="Have kids & don't want more" {% if profile.children == "Have kids & don't want more" %}selected{% endif %}>Have kids & don't want more</option>
-                            <option value="Don't have kids & want" {% if profile.children == "Don't have kids & want" %}selected{% endif %}>Don't have kids & want</option>
-                            <option value="Don't have kids & don't want" {% if profile.children == "Don't have kids & don't want" %}selected{% endif %}>Don't have kids & don't want</option>
-                        </select>
-
-                        <label class="form-label text-secondary small fw-bold">Education Level:</label>
-                        <select name="education_level" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Education</option>
-                            <option value="High School" {% if profile.education_level == 'High School' %}selected{% endif %}>High School</option>
-                            <option value="Associate Degree" {% if profile.education_level == 'Associate Degree' %}selected{% endif %}>Associate Degree</option>
-                            <option value="Bachelor's Degree" {% if profile.education_level == 'Bachelor\'s Degree' %}selected{% endif %}>Bachelor's Degree</option>
-                            <option value="Master's Degree" {% if profile.education_level == 'Master\'s Degree' %}selected{% endif %}>Master's Degree</option>
-                            <option value="Doctorate/PhD" {% if profile.education_level == 'Doctorate/PhD' %}selected{% endif %}>Doctorate/PhD</option>
-                        </select>
-
                         <label class="form-label text-secondary small fw-bold">Religion:</label>
                         <select name="religion" class="form-select bg-dark text-white border-secondary mb-2">
                             <option value="">Select Religion</option>
@@ -303,24 +226,7 @@
                             <option value="Non-religious/Atheist" {% if profile.religion == 'Non-religious/Atheist' %}selected{% endif %}>Non-religious/Atheist</option>
                         </select>
 
-                        <label class="form-label text-secondary small fw-bold">Zodiac Sign:</label>
-                        <select name="zodiac_sign" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Zodiac</option>
-                            <option value="Aries" {% if profile.zodiac_sign == 'Aries' %}selected{% endif %}>Aries</option>
-                            <option value="Taurus" {% if profile.zodiac_sign == 'Taurus' %}selected{% endif %}>Taurus</option>
-                            <option value="Gemini" {% if profile.zodiac_sign == 'Gemini' %}selected{% endif %}>Gemini</option>
-                            <option value="Cancer" {% if profile.zodiac_sign == 'Cancer' %}selected{% endif %}>Cancer</option>
-                            <option value="Leo" {% if profile.zodiac_sign == 'Leo' %}selected{% endif %}>Leo</option>
-                            <option value="Virgo" {% if profile.zodiac_sign == 'Virgo' %}selected{% endif %}>Virgo</option>
-                            <option value="Libra" {% if profile.zodiac_sign == 'Libra' %}selected{% endif %}>Libra</option>
-                            <option value="Scorpio" {% if profile.zodiac_sign == 'Scorpio' %}selected{% endif %}>Scorpio</option>
-                            <option value="Sagittarius" {% if profile.zodiac_sign == 'Sagittarius' %}selected{% endif %}>Sagittarius</option>
-                            <option value="Capricorn" {% if profile.zodiac_sign == 'Capricorn' %}selected{% endif %}>Capricorn</option>
-                            <option value="Aquarius" {% if profile.zodiac_sign == 'Aquarius' %}selected{% endif %}>Aquarius</option>
-                            <option value="Pisces" {% if profile.zodiac_sign == 'Pisces' %}selected{% endif %}>Pisces</option>
-                        </select>
-
-                        <h6 class="text-warning fw-bold mt-3 mb-2 border-bottom pb-1">📝 9 Deep Questionnaire Answers</h6>
+                        <h6 class="text-warning fw-bold mt-3 mb-2 border-bottom pb-1">📝 Questionnaire Answers</h6>
                         
                         <label class="form-label text-secondary small">1. Relationship Goal:</label>
                         <textarea name="q1_relationship_goal" class="form-control bg-dark text-white border-secondary mb-2" rows="2">{{ profile.q1_relationship_goal|default:'' }}</textarea>
@@ -330,24 +236,6 @@
 
                         <label class="form-label text-secondary small">3. Dealbreakers:</label>
                         <textarea name="q3_dealbreakers" class="form-control bg-dark text-white border-secondary mb-2" rows="2">{{ profile.q3_dealbreakers|default:'' }}</textarea>
-
-                        <label class="form-label text-secondary small">4. Love Language:</label>
-                        <textarea name="q4_love_language" class="form-control bg-dark text-white border-secondary mb-2" rows="2">{{ profile.q4_love_language|default:'' }}</textarea>
-
-                        <label class="form-label text-secondary small">5. Lifestyle Habits:</label>
-                        <textarea name="q5_lifestyle_habits" class="form-control bg-dark text-white border-secondary mb-2" rows="2">{{ profile.q5_lifestyle_habits|default:'' }}</textarea>
-
-                        <label class="form-label text-secondary small">6. Conflict Resolution:</label>
-                        <textarea name="q6_conflict_resolution" class="form-control bg-dark text-white border-secondary mb-2" rows="2">{{ profile.q6_conflict_resolution|default:'' }}</textarea>
-
-                        <label class="form-label text-secondary small">7. Future Vision:</label>
-                        <textarea name="q7_future_vision" class="form-control bg-dark text-white border-secondary mb-2" rows="2">{{ profile.q7_future_vision|default:'' }}</textarea>
-
-                        <label class="form-label text-secondary small">8. Partner Personality:</label>
-                        <textarea name="q8_partner_personality" class="form-control bg-dark text-white border-secondary mb-2" rows="2">{{ profile.q8_partner_personality|default:'' }}</textarea>
-
-                        <label class="form-label text-secondary small">9. Communication Preference:</label>
-                        <textarea name="q9_communication_preference" class="form-control bg-dark text-white border-secondary mb-3" rows="2">{{ profile.q9_communication_preference|default:'' }}</textarea>
 
                         <label class="form-label text-secondary small fw-bold">About Yourself (Bio):</label>
                         <textarea name="bio" class="form-control bg-dark text-white border-secondary mb-3" rows="3">{{ profile.bio }}</textarea>
@@ -362,7 +250,7 @@
                 <div class="glass-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <h4 class="fw-bold text-white m-0">🔥 Discovery Card Deck</h4>
-                        <span class="badge bg-success px-3 py-2 rounded-pill">🟢 {{ online_count }} Users Online</span>
+                        <span class="badge bg-success px-3 py-2 rounded-pill" id="onlineCountBadge">🟢 {{ online_count }} Users Online</span>
                     </div>
 
                     <!-- User Cards Grid -->
@@ -411,6 +299,21 @@
             </div>
         </div>
     </div>
+
+    <!-- Real-Time Polling Script for Instant Live Updates -->
+    <script>
+        setInterval(function() {
+            fetch("{% url 'api_check_updates' %}", {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.online_count !== undefined) {
+                    document.getElementById('onlineCountBadge').innerText = '🟢 ' + data.online_count + ' Users Online';
+                }
+            }).catch(err => console.log(err));
+        }, 10000); // Polls every 10 seconds
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
