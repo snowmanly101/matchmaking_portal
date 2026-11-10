@@ -252,33 +252,94 @@
                 <div class="card bg-dark text-white border-secondary p-4 mb-4 shadow" style="border-radius: 14px;">
                     <h5 class="fw-bold mb-3 text-rose" style="color: #ff3366;">🔍 Find Compatible Matches</h5>
                     <form method="GET" action="{% url 'portal' %}">
-                        <div class="row g-3">
+                        <div class="row g-3 align-items-end">
+                            
+                            <!-- Box 1: Country Dropdown -->
                             <div class="col-md-3">
-                                <label class="form-label small text-muted">Location (City / State)</label>
-                                <input type="text" name="location" class="form-control bg-dark text-white border-secondary" placeholder="e.g. New York, London" value="{{ request.GET.location }}">
+                                <label class="form-label text-warning small fw-bold mb-1">🌍 Select Country</label>
+                                <select name="country" class="form-select bg-dark text-white border-secondary">
+                                    <option value="">All Countries (Global)</option>
+                                    <option value="United States" {% if request.GET.country == 'United States' %}selected{% endif %}>United States</option>
+                                    <option value="Canada" {% if request.GET.country == 'Canada' %}selected{% endif %}>Canada</option>
+                                    <option value="United Kingdom" {% if request.GET.country == 'United Kingdom' %}selected{% endif %}>United Kingdom</option>
+                                    <option value="Australia" {% if request.GET.country == 'Australia' %}selected{% endif %}>Australia</option>
+                                    <option value="Germany" {% if request.GET.country == 'Germany' %}selected{% endif %}>Germany</option>
+                                    <option value="France" {% if request.GET.country == 'France' %}selected{% endif %}>France</option>
+                                    <option value="Spain" {% if request.GET.country == 'Spain' %}selected{% endif %}>Spain</option>
+                                    <option value="Italy" {% if request.GET.country == 'Italy' %}selected{% endif %}>Italy</option>
+                                    <option value="Brazil" {% if request.GET.country == 'Brazil' %}selected{% endif %}>Brazil</option>
+                                    <option value="Japan" {% if request.GET.country == 'Japan' %}selected{% endif %}>Japan</option>
+                                    <option value="Singapore" {% if request.GET.country == 'Singapore' %}selected{% endif %}>Singapore</option>
+                                    <option value="New Zealand" {% if request.GET.country == 'New Zealand' %}selected{% endif %}>New Zealand</option>
+                                    <option value="Switzerland" {% if request.GET.country == 'Switzerland' %}selected{% endif %}>Switzerland</option>
+                                    <option value="Netherlands" {% if request.GET.country == 'Netherlands' %}selected{% endif %}>Netherlands</option>
+                                    <option value="Sweden" {% if request.GET.country == 'Sweden' %}selected{% endif %}>Sweden</option>
+                                    <option value="Norway" {% if request.GET.country == 'Norway' %}selected{% endif %}>Norway</option>
+                                    <option value="United Arab Emirates" {% if request.GET.country == 'United Arab Emirates' %}selected{% endif %}>United Arab Emirates</option>
+                                    <option value="Argentina" {% if request.GET.country == 'Argentina' %}selected{% endif %}>Argentina</option>
+                                    <option value="Austria" {% if request.GET.country == 'Austria' %}selected{% endif %}>Austria</option>
+                                    <option value="Belgium" {% if request.GET.country == 'Belgium' %}selected{% endif %}>Belgium</option>
+                                    <option value="Chile" {% if request.GET.country == 'Chile' %}selected{% endif %}>Chile</option>
+                                    <option value="China" {% if request.GET.country == 'China' %}selected{% endif %}>China</option>
+                                    <option value="Denmark" {% if request.GET.country == 'Denmark' %}selected{% endif %}>Denmark</option>
+                                    <option value="Finland" {% if request.GET.country == 'Finland' %}selected{% endif %}>Finland</option>
+                                    <option value="Greece" {% if request.GET.country == 'Greece' %}selected{% endif %}>Greece</option>
+                                    <option value="Hong Kong" {% if request.GET.country == 'Hong Kong' %}selected{% endif %}>Hong Kong</option>
+                                    <option value="India" {% if request.GET.country == 'India' %}selected{% endif %}>India</option>
+                                    <option value="Indonesia" {% if request.GET.country == 'Indonesia' %}selected{% endif %}>Indonesia</option>
+                                    <option value="Ireland" {% if request.GET.country == 'Ireland' %}selected{% endif %}>Ireland</option>
+                                    <option value="Israel" {% if request.GET.country == 'Israel' %}selected{% endif %}>Israel</option>
+                                    <option value="Malaysia" {% if request.GET.country == 'Malaysia' %}selected{% endif %}>Malaysia</option>
+                                    <option value="Mexico" {% if request.GET.country == 'Mexico' %}selected{% endif %}>Mexico</option>
+                                    <option value="Philippines" {% if request.GET.country == 'Philippines' %}selected{% endif %}>Philippines</option>
+                                    <option value="Poland" {% if request.GET.country == 'Poland' %}selected{% endif %}>Poland</option>
+                                    <option value="Portugal" {% if request.GET.country == 'Portugal' %}selected{% endif %}>Portugal</option>
+                                    <option value="Qatar" {% if request.GET.country == 'Qatar' %}selected{% endif %}>Qatar</option>
+                                    <option value="Saudi Arabia" {% if request.GET.country == 'Saudi Arabia' %}selected{% endif %}>Saudi Arabia</option>
+                                    <option value="South Korea" {% if request.GET.country == 'South Korea' %}selected{% endif %}>South Korea</option>
+                                    <option value="Taiwan" {% if request.GET.country == 'Taiwan' %}selected{% endif %}>Taiwan</option>
+                                    <option value="Thailand" {% if request.GET.country == 'Thailand' %}selected{% endif %}>Thailand</option>
+                                    <option value="Turkey" {% if request.GET.country == 'Turkey' %}selected{% endif %}>Turkey</option>
+                                    <option value="Vietnam" {% if request.GET.country == 'Vietnam' %}selected{% endif %}>Vietnam</option>
+                                </select>
+                                <small class="text-muted d-block mt-1" style="font-size: 10px;">(Global regions only)</small>
                             </div>
+
+                            <!-- Box 2: Location / City / State with Auto-Detect -->
                             <div class="col-md-3">
-                                <label class="form-label small text-muted">Country</label>
-                                <input type="text" name="country" class="form-control bg-dark text-white border-secondary" placeholder="e.g. United States" value="{{ request.GET.country }}">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label text-warning small fw-bold mb-0">📍 Location (City / State)</label>
+                                    <button type="button" id="autoDetectBtn" class="btn btn-sm p-0 text-info border-0 bg-transparent" style="font-size: 10px; text-decoration: underline;" title="Auto-detect my location">Auto-Detect</button>
+                                </div>
+                                <input type="text" name="location" id="locationInput" class="form-control bg-dark text-white border-secondary" placeholder="e.g. New York, Texas" value="{{ request.GET.location }}">
+                                <small class="text-muted d-block mt-1" style="font-size: 10px;">(City, State, or Region)</small>
                             </div>
+
+                            <!-- Box 3: Gender -->
                             <div class="col-md-2">
-                                <label class="form-label small text-muted">Gender</label>
+                                <label class="form-label text-warning small fw-bold mb-1">👥 Gender</label>
                                 <select name="gender" class="form-select bg-dark text-white border-secondary">
                                     <option value="">All Genders</option>
                                     <option value="Male" {% if request.GET.gender == 'Male' %}selected{% endif %}>Male</option>
                                     <option value="Female" {% if request.GET.gender == 'Female' %}selected{% endif %}>Female</option>
                                     <option value="Non-Binary" {% if request.GET.gender == 'Non-Binary' %}selected{% endif %}>Non-Binary</option>
                                 </select>
+                                <small class="text-muted d-block mt-1" style="font-size: 10px;">(Seeking gender)</small>
                             </div>
+
+                            <!-- Box 4: Age Range -->
                             <div class="col-md-2">
-                                <label class="form-label small text-muted">Age Range</label>
-                                <div class="d-flex gap-2">
+                                <label class="form-label text-warning small fw-bold mb-1">🎂 Age Range</label>
+                                <div class="d-flex gap-1">
                                     <input type="number" name="min_age" class="form-control bg-dark text-white border-secondary px-2" placeholder="Min" value="{{ request.GET.min_age }}">
                                     <input type="number" name="max_age" class="form-control bg-dark text-white border-secondary px-2" placeholder="Max" value="{{ request.GET.max_age }}">
                                 </div>
+                                <small class="text-muted d-block mt-1" style="font-size: 10px;">(Min to Max yrs)</small>
                             </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-danger w-100 fw-bold" style="background: #ff3366; border: none;">Search</button>
+
+                            <!-- Search Button -->
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-danger w-100 fw-bold" style="background: #ff3366; border: none; height: 38px;">Search</button>
                             </div>
                         </div>
                     </form>
@@ -337,8 +398,27 @@
         </div>
     </div>
 
-    <!-- Real-Time Polling Script for Instant Live Updates -->
+    <!-- Auto-Detect Location Script & Real-Time Polling -->
     <script>
+        document.getElementById('autoDetectBtn').addEventListener('click', function() {
+            const locInput = document.getElementById('locationInput');
+            locInput.value = 'Detecting...';
+            fetch('https://ipapi.co/json/')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.city) {
+                        locInput.value = data.city + (data.region ? ', ' + data.region : '');
+                    } else {
+                        locInput.value = '';
+                        alert('Could not automatically detect location.');
+                    }
+                })
+                .catch(err => {
+                    locInput.value = '';
+                    alert('Geolocation lookup failed.');
+                });
+        });
+
         setInterval(function() {
             fetch("{% url 'api_check_updates' %}", {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
