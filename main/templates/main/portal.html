@@ -112,7 +112,7 @@
 
                         <li><hr class="dropdown-divider border-secondary my-2"></li>
 
-                        <!-- LIVE NOTIFICATIONS & CLICKABLE SENDER PROFILES -->
+                        <!-- LIVE NOTIFICATIONS -->
                         <li><h6 class="text-warning mb-2 fw-bold">🔔 Mailbox Notifications</h6></li>
                         {% if notifications %}
                             {% for notif in notifications %}
@@ -164,7 +164,7 @@
         <div class="row g-4">
             <!-- LEFT COLUMN: Profile & Questionnaire Editor -->
             <div class="col-lg-4">
-                <div class="glass-card p-4 text-center">
+                <div class="glass-card p-4 text-center" id="edit-profile-section">
                     
                     <a href="{% url 'upload_photos' %}" title="Click to Change or Delete Photos">
                         {% if profile.profile_image %}
@@ -245,8 +245,45 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Discovery Card Deck -->
+            <!-- RIGHT COLUMN: Discovery Card Deck & Advanced Search -->
             <div class="col-lg-8">
+                
+                <!-- Advanced Search Filter Bar -->
+                <div class="card bg-dark text-white border-secondary p-4 mb-4 shadow" style="border-radius: 14px;">
+                    <h5 class="fw-bold mb-3 text-rose" style="color: #ff3366;">🔍 Find Compatible Matches</h5>
+                    <form method="GET" action="{% url 'portal' %}">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted">Location (City / State)</label>
+                                <input type="text" name="location" class="form-control bg-dark text-white border-secondary" placeholder="e.g. New York, London" value="{{ request.GET.location }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted">Country</label>
+                                <input type="text" name="country" class="form-control bg-dark text-white border-secondary" placeholder="e.g. United States" value="{{ request.GET.country }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted">Gender</label>
+                                <select name="gender" class="form-select bg-dark text-white border-secondary">
+                                    <option value="">All Genders</option>
+                                    <option value="Male" {% if request.GET.gender == 'Male' %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if request.GET.gender == 'Female' %}selected{% endif %}>Female</option>
+                                    <option value="Non-Binary" {% if request.GET.gender == 'Non-Binary' %}selected{% endif %}>Non-Binary</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted">Age Range</label>
+                                <div class="d-flex gap-2">
+                                    <input type="number" name="min_age" class="form-control bg-dark text-white border-secondary px-2" placeholder="Min" value="{{ request.GET.min_age }}">
+                                    <input type="number" name="max_age" class="form-control bg-dark text-white border-secondary px-2" placeholder="Max" value="{{ request.GET.max_age }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-danger w-100 fw-bold" style="background: #ff3366; border: none;">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="glass-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <h4 class="fw-bold text-white m-0">🔥 Discovery Card Deck</h4>
@@ -291,7 +328,7 @@
                             </div>
                         {% empty %}
                             <div class="col-12 text-center py-5">
-                                <p class="text-secondary">No profiles found.</p>
+                                <p class="text-secondary">No matching profiles found for your search criteria.</p>
                             </div>
                         {% endfor %}
                     </div>
@@ -312,7 +349,7 @@
                     document.getElementById('onlineCountBadge').innerText = '🟢 ' + data.online_count + ' Users Online';
                 }
             }).catch(err => console.log(err));
-        }, 10000); // Polls every 10 seconds
+        }, 10000);
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

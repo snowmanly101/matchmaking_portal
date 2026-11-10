@@ -167,7 +167,6 @@ def home_view(request):
           return redirect('home')
 
         try:
-          # Step 1: Create account with Email & Password only
           profile = MatchProfile(email=email)
           profile.set_password(raw_password)
           profile.full_name = 'New Member'
@@ -181,8 +180,6 @@ def home_view(request):
           profile.save()
 
           create_bot_welcome_message(profile)
-          
-          # Store setup ID in session for Step 2
           request.session['setup_user_id'] = profile.id
           return redirect('complete_profile')
         except Exception as db_err:
@@ -194,7 +191,6 @@ def home_view(request):
 
 
 def complete_profile_view(request):
-  """Step 2: User details (Age, phone, gender, country, occupation, bio, image)"""
   user_id = request.session.get('setup_user_id') or request.session.get('user_id')
   if not user_id:
     return redirect('home')
@@ -210,7 +206,6 @@ def complete_profile_view(request):
         profile.profile_image = request.FILES.get('profile_image')
         profile.save()
 
-      # Move to Step 3: Deep Questionnaire
       request.session['setup_user_id'] = profile.id
       return redirect('questionnaire_step')
     else:
@@ -220,7 +215,6 @@ def complete_profile_view(request):
 
 
 def questionnaire_step_view(request):
-  """Step 3: 9-question compatibility questionnaire"""
   user_id = request.session.get('setup_user_id') or request.session.get('user_id')
   if not user_id:
     return redirect('home')
@@ -232,7 +226,6 @@ def questionnaire_step_view(request):
     form = QuestionnaireForm(request.POST, instance=profile)
     if form.is_valid():
       form.save()
-      # Finalize session as fully logged in user
       request.session['user_id'] = profile.id
       if 'setup_user_id' in request.session:
         del request.session['setup_user_id']
@@ -458,7 +451,26 @@ def portal_view(request):
     else:
       messages.error(request, 'Invalid Match PIN.')
 
+  # Advanced Search Query Filtering (Location, Country, Gender, Age)
   all_users = MatchProfile.objects.exclude(id=profile.id).exclude(email='bot@auramatch.forum').filter(is_locked=False)
+  
+  search_location = request.GET.get('location', '').strip()
+  search_country = request.GET.get('country', '').strip()
+  search_gender = request.GET.get('gender', '').strip()
+  min_age = request.GET.get('min_age', '').strip()
+  max_age = request.GET.get('max_age', '').strip()
+
+  if search_location:
+    all_users = all_users.filter(models.Q(city__icontains=search_location) | models.Q(state__icontains=search_location))
+  if search_country:
+    all_users = all_users.filter(country__icontains=search_country)
+  if search_gender:
+    all_users = all_users.filter(gender__iexact=search_gender)
+  if min_age.isdigit():
+    all_users = all_users.filter(age__gte=int(min_age))
+  if max_age.isdigit():
+    all_users = all_users.filter(age__lte=int(max_age))
+
   five_mins_ago = timezone.now() - timedelta(minutes=5)
   online_count = MatchProfile.objects.filter(last_seen__gte=five_mins_ago).count()
   active_connections = MatchConnection.objects.filter((models.Q(user1=profile) | models.Q(user2=profile)) & models.Q(is_active=True))

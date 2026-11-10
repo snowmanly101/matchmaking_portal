@@ -37,10 +37,7 @@
             color: white;
             transition: opacity 0.2s;
         }
-        .partner-profile-link:hover {
-            opacity: 0.85;
-            color: #fb7185;
-        }
+        .partner-profile-link:hover { opacity: 0.85; color: #fb7185; }
         .partner-avatar {
             width: 40px;
             height: 40px;
@@ -104,7 +101,7 @@
 <body>
 
 <div class="page-wrapper">
-    <!-- Header with Clickable Partner Avatar & Profile Link -->
+    <!-- Header -->
     <div class="glass-header px-3 py-2 d-flex justify-content-between align-items-center shadow-sm">
         <a href="{% url 'view_profile' partner.id %}" class="partner-profile-link" title="Click to view full profile">
             {% if partner.profile_image %}
@@ -118,8 +115,9 @@
             </div>
         </a>
         <div class="d-flex align-items-center gap-2">
-            <a href="{% url 'portal' %}" class="btn-profile" style="background: transparent; border-color: rgba(255,255,255,0.2); color: #cbd5e1;">Portal</a>
-            <a href="{% url 'view_profile' profile.id %}" class="btn-profile">My Profile</a>
+            <a href="{% url 'portal' %}" class="btn-profile" style="background: transparent; border-color: rgba(255,255,255,0.2); color: #cbd5e1;">Dashboard</a>
+            <!-- Opens Dashboard/Portal where user edits their own profile -->
+            <a href="{% url 'portal' %}#edit-profile-section" class="btn-profile">My Profile</a>
         </div>
     </div>
 
