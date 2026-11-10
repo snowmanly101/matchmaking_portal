@@ -86,13 +86,10 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ffffff;
             width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
         }
-        .form-container p { margin-bottom: 10px; }
         .form-container input, .form-container select, .form-container textarea {
             width: 100%;
-            padding: 9px;
+            padding: 10px;
             margin-top: 4px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -167,7 +164,7 @@
                 </div>
 
                 <!-- Login Form Container -->
-                <div class="form-container" style="background: rgba(15, 23, 42, 0.85); border-color: rgba(255, 51, 102, 0.3); max-height: none;">
+                <div class="form-container" style="background: rgba(15, 23, 42, 0.85); border-color: rgba(255, 51, 102, 0.3);">
                     <h3 style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">Already Registered?</h3>
                     <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px;">Log in instantly with your registered email and password.</p>
                     
@@ -179,7 +176,7 @@
                         {% endfor %}
                     {% endif %}
 
-                    <form method="POST" enctype="multipart/form-data">
+                    <form method="POST">
                         {% csrf_token %}
                         <div class="mb-2">
                             <label for="login_email" style="font-size: 11px; color: #94a3b8;">Email Address</label>
@@ -197,72 +194,26 @@
                 </div>
             </div>
 
-            <!-- Right Side: Registration Form with Compulsory 9 Questionnaire Answers -->
+            <!-- Right Side: Clean Email & Password Registration -->
             <div class="forms-wrapper">
                 <div class="form-container">
                     <h2 style="font-size: 20px; margin-top: 0; margin-bottom: 5px;">Start Your 14-Day Free Trial</h2>
-                    <p style="font-size: 12px; color: #cbd5e1;">Fill out your basic details and compulsory compatibility questionnaire to register.</p>
+                    <p style="font-size: 12px; color: #cbd5e1;">Enter your email and create a password to begin your matchmaking journey.</p>
                     
-                    <form method="POST" enctype="multipart/form-data">
+                    <form method="POST">
                         {% csrf_token %}
-                        
-                        {% if form.errors %}
-                            <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px; color: #fca5a5;">
-                                <strong>Please fix the errors below:</strong>
-                                {{ form.errors }}
-                            </div>
-                        {% endif %}
 
-                        {{ form.as_p }}
-                        
-                        <!-- Explicit Password Field -->
-                        <div style="margin-bottom: 15px;">
-                            <label for="id_password" style="font-size: 13px; color: #cbd5e1; display: block; margin-bottom: 4px;">Password *</label>
+                        <div class="mb-3">
+                            <label for="id_email">Email Address *</label>
+                            <input type="email" id="id_email" name="email" placeholder="name@example.com" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_password">Password *</label>
                             <input type="password" id="id_password" name="password" placeholder="Create a secure password" required>
                         </div>
-
-                        <hr style="border-color: rgba(255,255,255,0.2); margin: 20px 0;">
-                        <h5 style="color: #ff3366; font-size: 15px; font-weight: bold; margin-bottom: 15px;">📝 Compulsory Compatibility Questionnaire</h5>
-
-                        <!-- 9 Questionnaire Fields (All Required) -->
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">1. Relationship Goal *</label>
-                            <input type="text" name="q1_relationship_goal" placeholder="e.g. Marriage, Long-term relationship" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">2. Core Values *</label>
-                            <input type="text" name="q2_core_values" placeholder="e.g. Honesty, Family, Ambition" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">3. Dealbreakers *</label>
-                            <input type="text" name="q3_dealbreakers" placeholder="e.g. Dishonesty, Smoking" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">4. Love Language *</label>
-                            <input type="text" name="q4_love_language" placeholder="e.g. Quality time, Words of affirmation" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">5. Lifestyle Habits *</label>
-                            <input type="text" name="q5_lifestyle_habits" placeholder="e.g. Fitness enthusiast, Homebody" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">6. Conflict Resolution *</label>
-                            <input type="text" name="q6_conflict_resolution" placeholder="e.g. Calm discussion, Open communication" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">7. Future Vision *</label>
-                            <input type="text" name="q7_future_vision" placeholder="e.g. Building a business & raising kids" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">8. Partner Personality *</label>
-                            <input type="text" name="q8_partner_personality" placeholder="e.g. Supportive, humorous, caring" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">9. Communication Preference *</label>
-                            <input type="text" name="q9_communication_preference" placeholder="e.g. Daily texting & evening phone calls" required>
-                        </div>
                         
-                        <button type="submit" name="register" class="submit-btn">Start Free Trial & Register</button>
+                        <button type="submit" name="register" class="submit-btn">Continue to Profile Setup &rarr;</button>
                     </form>
 
                     <div class="footer-note">

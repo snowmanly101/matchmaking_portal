@@ -1,12 +1,10 @@
 import os
 import random
-import uuid
 import requests
 import resend
 from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.db import models
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -126,7 +124,6 @@ def create_bot_welcome_message(new_user):
 
 def home_view(request):
   support_form = SupportTicketForm()
-  form = MatchProfileForm()
 
   if request.method == 'POST':
     if 'support_submit' in request.POST:
@@ -161,40 +158,71 @@ def home_view(request):
         messages.error(request, 'Registration restricted: Traffic from African IP regions violates our platform privacy policy.')
         return redirect('home')
 
-      form = MatchProfileForm(request.POST, request.FILES)
+      email = request.POST.get('email')
       raw_password = request.POST.get('password')
 
-      if form.is_valid() and raw_password:
-        email = form.cleaned_data.get('email')
+      if email and raw_password:
         if MatchProfile.objects.filter(email=email).exists():
           messages.error(request, 'An account with this email already exists. Please log in.')
           return redirect('home')
 
         try:
-          profile = form.save(commit=False)
+          # Step 1: Create account with Email & Password only
+          profile = MatchProfile(email=email)
           profile.set_password(raw_password)
+          profile.full_name = 'New Member'
+          profile.age = 18
+          profile.gender = 'Female'
+          profile.seeking = 'Male'
+          profile.country = 'United States'
           profile.registration_ip = client_ip
           profile.last_login_ip = client_ip
           profile.is_verified = True
           profile.save()
 
-          if request.FILES.get('profile_image'):
-            profile.profile_image = request.FILES.get('profile_image')
-            profile.save()
-
           create_bot_welcome_message(profile)
-          request.session['pending_questionnaire_user_id'] = profile.id
-          messages.success(request, 'Account created successfully! Please complete your questionnaire below.')
-          return redirect('questionnaire_step')
+          
+          # Direct user to Step 2: Profile Details Form
+          request.session['setup_user_id'] = profile.id
+          return redirect('complete_profile')
         except Exception as db_err:
           messages.error(request, f'An error occurred: {str(db_err)}')
       else:
-        messages.error(request, 'Please correct the registration errors below.')
+        messages.error(request, 'Please provide a valid email and password.')
 
-  return render(request, 'main/home.html', {'form': form, 'support_form': support_form})
+  return render(request, 'main/home.html', {'support_form': support_form})
+
+
+def complete_profile_view(request):
+  """Step 2: User details (Age, phone, gender, country, occupation, bio, image)"""
+  user_id = request.session.get('setup_user_id') or request.session.get('user_id')
+  if not user_id:
+    return redirect('home')
+
+  profile = get_object_or_404(MatchProfile, id=user_id)
+  form = MatchProfileForm(instance=profile)
+
+  if request.method == 'POST':
+    form = MatchProfileForm(request.POST, request.FILES, instance=profile)
+    if form.is_valid():
+      form.save()
+      if request.FILES.get('profile_image'):
+        profile.profile_image = request.FILES.get('profile_image')
+        profile.save()
+
+      # Move to Step 3: Deep Questionnaire
+      request.session['pending_questionnaire_user_id'] = profile.id
+      if 'setup_user_id' in request.session:
+        del request.session['setup_user_id']
+      return redirect('questionnaire_step')
+    else:
+      messages.error(request, 'Please correct the errors in your profile details.')
+
+  return render(request, 'main/complete_profile.html', {'form': form, 'profile': profile})
 
 
 def questionnaire_step_view(request):
+  """Step 3: 9-question compatibility questionnaire"""
   user_id = request.session.get('pending_questionnaire_user_id') or request.session.get('user_id')
   if not user_id:
     return redirect('home')
@@ -209,10 +237,10 @@ def questionnaire_step_view(request):
       request.session['user_id'] = profile.id
       if 'pending_questionnaire_user_id' in request.session:
         del request.session['pending_questionnaire_user_id']
-      messages.success(request, 'Questionnaire completed successfully! Welcome to your dashboard.')
+      messages.success(request, 'Registration complete! Welcome to your dashboard.')
       return redirect('portal')
     else:
-      messages.error(request, 'Please correct the errors in your questionnaire.')
+      messages.error(request, 'Please complete the questionnaire fields.')
 
   return render(request, 'main/questionnaire.html', {'profile': profile, 'form': form})
 
@@ -449,7 +477,6 @@ def portal_view(request):
 
 
 def api_check_updates_view(request):
-  """AJAX endpoint for instant real-time live polling without page reloads."""
   user_id = request.session.get('user_id')
   if not user_id:
     return JsonResponse({'error': 'Unauthorized'}, status=401)
