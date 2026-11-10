@@ -182,7 +182,7 @@ def home_view(request):
 
           create_bot_welcome_message(profile)
           
-          # Direct user to Step 2: Profile Details Form
+          # Store setup ID in session for Step 2
           request.session['setup_user_id'] = profile.id
           return redirect('complete_profile')
         except Exception as db_err:
@@ -211,9 +211,7 @@ def complete_profile_view(request):
         profile.save()
 
       # Move to Step 3: Deep Questionnaire
-      request.session['pending_questionnaire_user_id'] = profile.id
-      if 'setup_user_id' in request.session:
-        del request.session['setup_user_id']
+      request.session['setup_user_id'] = profile.id
       return redirect('questionnaire_step')
     else:
       messages.error(request, 'Please correct the errors in your profile details.')
@@ -223,7 +221,7 @@ def complete_profile_view(request):
 
 def questionnaire_step_view(request):
   """Step 3: 9-question compatibility questionnaire"""
-  user_id = request.session.get('pending_questionnaire_user_id') or request.session.get('user_id')
+  user_id = request.session.get('setup_user_id') or request.session.get('user_id')
   if not user_id:
     return redirect('home')
   
@@ -234,15 +232,16 @@ def questionnaire_step_view(request):
     form = QuestionnaireForm(request.POST, instance=profile)
     if form.is_valid():
       form.save()
+      # Finalize session as fully logged in user
       request.session['user_id'] = profile.id
-      if 'pending_questionnaire_user_id' in request.session:
-        del request.session['pending_questionnaire_user_id']
+      if 'setup_user_id' in request.session:
+        del request.session['setup_user_id']
       messages.success(request, 'Registration complete! Welcome to your dashboard.')
       return redirect('portal')
     else:
       messages.error(request, 'Please complete the questionnaire fields.')
 
-  return render(request, 'main/questionnaire.html', {'profile': profile, 'form': form})
+  return render(request, 'main/questionnaire_step.html', {'profile': profile, 'form': form})
 
 
 def verify_email_view(request):
@@ -257,7 +256,7 @@ def verify_email_view(request):
 
 
 def upload_photos_view(request):
-  user_id = request.session.get('user_id') or request.session.get('pending_user_id')
+  user_id = request.session.get('user_id') or request.session.get('setup_user_id')
   if not user_id:
     return redirect('home')
   profile = get_object_or_404(MatchProfile, id=user_id)
