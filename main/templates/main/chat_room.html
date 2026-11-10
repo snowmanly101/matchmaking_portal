@@ -20,7 +20,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            height: 100dvh; /* Adapts perfectly to mobile browser dynamic viewports */
+            height: 100dvh;
             width: 100%;
         }
         .glass-header { 
@@ -28,6 +28,25 @@
             backdrop-filter: blur(15px); 
             border-bottom: 1px solid rgba(244, 63, 94, 0.2); 
             flex-shrink: 0;
+        }
+        .partner-profile-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+            transition: opacity 0.2s;
+        }
+        .partner-profile-link:hover {
+            opacity: 0.85;
+            color: #fb7185;
+        }
+        .partner-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #f43f5e;
         }
         .chat-container { 
             flex: 1; 
@@ -85,20 +104,27 @@
 <body>
 
 <div class="page-wrapper">
-    <!-- Header -->
+    <!-- Header with Clickable Partner Avatar & Profile Link -->
     <div class="glass-header px-3 py-2 d-flex justify-content-between align-items-center shadow-sm">
-        <div>
-            <h6 class="mb-0 text-white fw-bold text-truncate" style="max-width: 200px;">💖 {{ partner.full_name }}</h6>
-            <small class="text-rose" style="color: #fda4af; font-size: 10px;">🔒 Secure &bull; Encrypted</small>
-        </div>
-        <a href="{% url 'portal' %}" class="btn-profile">My Profile</a>
+        <a href="{% url 'view_profile' partner.id %}" class="partner-profile-link" title="Click to view full profile">
+            {% if partner.profile_image %}
+                <img src="{{ partner.profile_image.url }}" alt="{{ partner.full_name }}" class="partner-avatar">
+            {% else %}
+                <img src="https://via.placeholder.com/40" alt="Avatar" class="partner-avatar">
+            {% endif %}
+            <div>
+                <h6 class="mb-0 text-white fw-bold text-truncate" style="max-width: 180px;">💖 {{ partner.full_name }}</h6>
+                <small class="text-rose" style="color: #34d399; font-size: 10px;">● Click to view profile</small>
+            </div>
+        </a>
+        <a href="{% url 'portal' %}" class="btn-profile">My Portal</a>
     </div>
 
     <!-- Chat Messages Feed -->
     <div class="chat-container" id="chatFeed">
-        <div class="w-100 d-flex flex-column gap-2">
+        <div class="w-100 d-flex flex-column gap-2" id="messageListWrapper">
             {% for msg in messages_list %}
-                <div class="message-bubble {% if msg.sender == profile %}message-outgoing{% else %}message-incoming{% endif %}">
+                <div class="message-bubble {% if msg.sender == profile %}message-outgoing{% else %}message-incoming{% endif %}" data-id="{{ msg.id }}">
                     <div class="small fw-bold mb-1 opacity-75" style="font-size: 0.7rem;">
                         {% if msg.sender == profile %}You 💕{% else %}{{ partner.full_name }}{% endif %}
                     </div>
@@ -118,7 +144,7 @@
                     </div>
                 </div>
             {% empty %}
-                <div class="text-center text-muted my-auto">
+                <div class="text-center text-muted my-auto" id="emptyChatNotice">
                     <p class="mb-1 fs-6 text-light">✨ Your love story begins here.</p>
                     <small style="color: #cbd5e1;">Send a sweet message to start chatting!</small>
                 </div>
@@ -166,18 +192,81 @@
     function forceScrollBottom() { chatFeed.scrollTop = chatFeed.scrollHeight; }
     window.addEventListener('load', forceScrollBottom);
     forceScrollBottom();
-    setTimeout(forceScrollBottom, 50);
 
-    const chatForm = document.getElementById('chatForm');
-    if (chatForm) {
-        chatForm.addEventListener('submit', () => {
-            setTimeout(forceScrollBottom, 100);
-        });
+    // Auto-polling for instant live chat without manual refresh
+    let lastMsgId = 0;
+    const bubbles = document.querySelectorAll('.message-bubble');
+    if (bubbles.length > 0) {
+        lastMsgId = parseInt(bubbles[bubbles.length - 1].getAttribute('data-id')) || 0;
     }
 
+    setInterval(() => {
+        fetch(`?fetch_messages=1&last_id=${lastMsgId}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.messages && data.messages.length > 0) {
+                const wrapper = document.getElementById('messageListWrapper');
+                const emptyNotice = document.getElementById('emptyChatNotice');
+                if (emptyNotice) emptyNotice.remove();
+
+                data.messages.forEach(m => {
+                    lastMsgId = m.id;
+                    const bubble = document.createElement('div');
+                    bubble.className = `message-bubble ${m.is_me ? 'message-outgoing' : 'message-incoming'}`;
+                    bubble.setAttribute('data-id', m.id);
+
+                    let htmlContent = `<div class="small fw-bold mb-1 opacity-75" style="font-size: 0.7rem;">${m.is_me ? 'You 💕' : m.sender_name}</div>`;
+                    if (m.message_text) {
+                        htmlContent += `<p class="mb-1" style="font-size: 0.9rem; line-height: 1.3;">${m.message_text}</p>`;
+                    }
+                    if (m.image_url) {
+                        htmlContent += `<div class="my-1"><img src="${m.image_url}" alt="Shared Image" class="rounded img-fluid" style="max-height: 200px; object-fit: cover;"></div>`;
+                    }
+                    htmlContent += `<div class="text-end opacity-50" style="font-size: 0.6rem;">${m.sent_at}</div>`;
+                    
+                    bubble.innerHTML = htmlContent;
+                    wrapper.appendChild(bubble);
+                });
+                forceScrollBottom();
+            }
+        })
+        .catch(err => console.log('Polling check error:', err));
+    }, 3000);
+
+    // AJAX form submission for instant sending without page reload
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const imageInput = document.getElementById('chatImageInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(chatForm);
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                messageInput.value = '';
+                imageInput.value = '';
+                fileNameDisplay.classList.add('d-none');
+            }
+        })
+        .catch(err => {
+            // Fallback standard submit if AJAX fails
+            chatForm.submit();
+        });
+    });
+
+    // Emoji picker toggle
     const emojiBtn = document.getElementById('emojiBtn');
     const emojiContainer = document.getElementById('emoji-picker-container');
-    const messageInput = document.getElementById('messageInput');
     const emojiGrid = document.getElementById('emojiGrid');
 
     if (emojiBtn && messageInput && emojiContainer) {
@@ -199,8 +288,6 @@
         });
     }
 
-    const imageInput = document.getElementById('chatImageInput');
-    const fileNameDisplay = document.getElementById('fileNameDisplay');
     if (imageInput && fileNameDisplay) {
         imageInput.addEventListener('change', function() {
             if (this.files && this.files[0]) {

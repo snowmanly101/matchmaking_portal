@@ -1,6 +1,7 @@
 from django import forms
 from .models import MatchProfile, SupportTicket
 
+# Comprehensive global countries excluding restricted African regions
 COUNTRIES_LIST = [
     ('', 'Select Country'),
     ('United States', 'United States'),
@@ -20,6 +21,32 @@ COUNTRIES_LIST = [
     ('Sweden', 'Sweden'),
     ('Norway', 'Norway'),
     ('United Arab Emirates', 'United Arab Emirates'),
+    ('Argentina', 'Argentina'),
+    ('Austria', 'Austria'),
+    ('Belgium', 'Belgium'),
+    ('Chile', 'Chile'),
+    ('China', 'China'),
+    ('Denmark', 'Denmark'),
+    ('Finland', 'Finland'),
+    ('Greece', 'Greece'),
+    ('Hong Kong', 'Hong Kong'),
+    ('India', 'India'),
+    ('Indonesia', 'Indonesia'),
+    ('Ireland', 'Ireland'),
+    ('Israel', 'Israel'),
+    ('Japan', 'Japan'),
+    ('Malaysia', 'Malaysia'),
+    ('Mexico', 'Mexico'),
+    ('Philippines', 'Philippines'),
+    ('Poland', 'Poland'),
+    ('Portugal', 'Portugal'),
+    ('Qatar', 'Qatar'),
+    ('Saudi Arabia', 'Saudi Arabia'),
+    ('South Korea', 'South Korea'),
+    ('Taiwan', 'Taiwan'),
+    ('Thailand', 'Thailand'),
+    ('Turkey', 'Turkey'),
+    ('Vietnam', 'Vietnam'),
 ]
 
 GENDER_CHOICES = [
