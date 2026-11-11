@@ -162,7 +162,7 @@
         {% endif %}
 
         <div class="row g-4">
-            <!-- LEFT COLUMN: Profile & Questionnaire Editor -->
+            <!-- LEFT COLUMN: Profile & Quick Facts Editor -->
             <div class="col-lg-4">
                 <div class="glass-card p-4 text-center" id="edit-profile-section">
                     
@@ -182,9 +182,9 @@
                     <div class="text-start p-3 rounded bg-dark border border-secondary mb-3 small">
                         <p class="mb-2"><strong>Age:</strong> <span class="text-light">{{ profile.age }} yrs</span></p>
                         <p class="mb-2"><strong>Location:</strong> <span class="text-light">{% if profile.city %}{{ profile.city }}, {% endif %}{{ profile.country }}</span></p>
-                        <p class="mb-2"><strong>Height:</strong> <span class="text-light">{{ profile.height|default:"Not set" }}</span></p>
-                        <p class="mb-2"><strong>Religion:</strong> <span class="text-light">{{ profile.religion|default:"Not set" }}</span></p>
-                        <p class="mb-0"><strong>Smoking:</strong> <span class="text-light">{{ profile.smoking|default:"Not set" }}</span></p>
+                        <p class="mb-2"><strong>Height:</strong> <span class="text-light">{{ profile.height|default:"Not specified" }}</span></p>
+                        <p class="mb-2"><strong>Religion:</strong> <span class="text-light">{{ profile.religion|default:"Not specified" }}</span></p>
+                        <p class="mb-0"><strong>Smoking:</strong> <span class="text-light">{{ profile.smoking|default:"Not specified" }}</span></p>
                     </div>
 
                     <!-- Match PIN -->
@@ -193,7 +193,7 @@
                         <span class="badge bg-danger fs-4 px-3 py-2">{{ profile.match_pin }}</span>
                     </div>
 
-                    <!-- PROFILE & QUESTIONNAIRE UPDATE FORM -->
+                    <!-- PROFILE & QUICK FACTS UPDATE FORM -->
                     <form method="POST" class="text-start">
                         {% csrf_token %}
                         <h6 class="text-warning fw-bold mb-2 border-bottom pb-1">📍 Basic Information</h6>
@@ -206,25 +206,40 @@
                         <h6 class="text-warning fw-bold mt-3 mb-2 border-bottom pb-1">🧬 Quick Facts & Lifestyle</h6>
                         
                         <label class="form-label text-secondary small fw-bold">Height:</label>
-                        <select name="height" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Height</option>
-                            <option value="Under 5'0"" {% if profile.height == 'Under 5\'0"' %}selected{% endif %}>Under 5'0"</option>
-                            <option value="5'0&quot; - 5'3&quot;" {% if profile.height == '5\'0" - 5\'3"' %}selected{% endif %}>5'0" - 5'3"</option>
-                            <option value="5'4&quot; - 5'7&quot;" {% if profile.height == '5\'4" - 5\'7"' %}selected{% endif %}>5'4" - 5'7"</option>
-                            <option value="5'8&quot; - 5'11&quot;" {% if profile.height == '5\'8" - 5\'11"' %}selected{% endif %}>5'8" - 5'11"</option>
-                            <option value="6'0&quot; - 6'3&quot;" {% if profile.height == '6\'0" - 6\'3"' %}selected{% endif %}>6'0" - 6'3"</option>
-                            <option value="6'4&quot;+" {% if profile.height == '6\'4"+' %}selected{% endif %}>6'4"+</option>
-                        </select>
+                        <input type="text" name="height" value="{{ profile.height|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. 5'10&quot;">
+
+                        <label class="form-label text-secondary small fw-bold">Body Type:</label>
+                        <input type="text" name="body_type" value="{{ profile.body_type|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Athletic">
+
+                        <label class="form-label text-secondary small fw-bold">Ethnicity:</label>
+                        <input type="text" name="ethnicity" value="{{ profile.ethnicity|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Caucasian">
+
+                        <label class="form-label text-secondary small fw-bold">Marital Status:</label>
+                        <input type="text" name="marital_status" value="{{ profile.marital_status|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Never Married">
+
+                        <label class="form-label text-secondary small fw-bold">Languages:</label>
+                        <input type="text" name="languages_spoken" value="{{ profile.languages_spoken|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. English, Spanish">
 
                         <label class="form-label text-secondary small fw-bold">Religion:</label>
-                        <select name="religion" class="form-select bg-dark text-white border-secondary mb-2">
-                            <option value="">Select Religion</option>
-                            <option value="Christianity" {% if profile.religion == 'Christianity' %}selected{% endif %}>Christianity</option>
-                            <option value="Islam" {% if profile.religion == 'Islam' %}selected{% endif %}>Islam</option>
-                            <option value="Judaism" {% if profile.religion == 'Judaism' %}selected{% endif %}>Judaism</option>
-                            <option value="Spiritual" {% if profile.religion == 'Spiritual' %}selected{% endif %}>Spiritual</option>
-                            <option value="Non-religious/Atheist" {% if profile.religion == 'Non-religious/Atheist' %}selected{% endif %}>Non-religious/Atheist</option>
-                        </select>
+                        <input type="text" name="religion" value="{{ profile.religion|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Christianity">
+
+                        <label class="form-label text-secondary small fw-bold">Smoking:</label>
+                        <input type="text" name="smoking" value="{{ profile.smoking|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Non-smoker">
+
+                        <label class="form-label text-secondary small fw-bold">Drinking:</label>
+                        <input type="text" name="drinking" value="{{ profile.drinking|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Socially">
+
+                        <label class="form-label text-secondary small fw-bold">Diet:</label>
+                        <input type="text" name="dietary_preferences" value="{{ profile.dietary_preferences|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Omnivore">
+
+                        <label class="form-label text-secondary small fw-bold">Children:</label>
+                        <input type="text" name="children" value="{{ profile.children|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. None">
+
+                        <label class="form-label text-secondary small fw-bold">Education Level:</label>
+                        <input type="text" name="education_level" value="{{ profile.education_level|default:'' }}" class="form-control bg-dark text-white border-secondary mb-2" placeholder="e.g. Bachelor's Degree">
+
+                        <label class="form-label text-secondary small fw-bold">Zodiac Sign:</label>
+                        <input type="text" name="zodiac_sign" value="{{ profile.zodiac_sign|default:'' }}" class="form-control bg-dark text-white border-secondary mb-3" placeholder="e.g. Leo">
 
                         <h6 class="text-warning fw-bold mt-3 mb-2 border-bottom pb-1">📝 Questionnaire Answers</h6>
                         

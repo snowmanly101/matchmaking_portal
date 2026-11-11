@@ -5,94 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Profile | AuraMatch</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            background-color: #0a0f1e;
-        }
-        .hero-background {
-            background-image: url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-position: center;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 40px 20px;
-        }
-        .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 15, 30, 0.9);
-            z-index: 1;
-        }
-        .form-card {
-            position: relative;
-            z-index: 2;
-            background: rgba(15, 23, 42, 0.95);
-            padding: 35px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
-            max-width: 650px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            color: #ffffff;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .form-card input, .form-card select, .form-card textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 4px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            color: white;
-        }
-        .form-card label { font-size: 13px; color: #cbd5e1; margin-top: 10px; display: block; }
-        .submit-btn {
-            background: #ff3366;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            width: 100%;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 25px;
-        }
-        .submit-btn:hover { background: #e02e5b; }
+        body { background-color: #0b1120; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .brand-logo { font-weight: 700; letter-spacing: 2px; background: linear-gradient(45deg, #f43f5e, #fb7185); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); border: none; color: white; font-weight: 600; padding: 10px 20px; border-radius: 50px; width: 100%; transition: all 0.3s ease; }
+        .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4); color: white; }
     </style>
 </head>
-<body>
-    <div class="hero-background">
-        <div class="overlay"></div>
-        <div class="form-card">
+<body class="d-flex align-items-center justify-content-center min-vh-100 py-5">
+
+    <div class="container" style="max-width: 650px;">
+        <div class="text-center mb-4">
+            <h1 class="brand-logo fs-2">AURAMATCH</h1>
+        </div>
+
+        <div class="glass-card p-4 p-md-5">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 style="color: #ff3366; margin: 0; font-size: 22px;">❤️ AURAMATCH</h3>
-                <span class="text-secondary small fw-bold">Step 2 of 3: Profile Details</span>
+                <h4 class="fw-bold text-white mb-0">Tell Us About Yourself</h4>
+                <span class="badge bg-danger" style="background: #ff3366 !important;">Step 2 of 3: Profile Details</span>
             </div>
-            <h4 class="mb-2" style="font-size: 20px;">Tell Us About Yourself</h4>
-            <p class="text-secondary small mb-4">Provide your background information so our matchmakers can find your ideal matches.</p>
+            <p class="text-secondary small mb-4">Provide your background information and lifestyle facts so our matchmakers can find your ideal matches.</p>
 
             {% if messages %}
                 {% for message in messages %}
-                    <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px; color: #fca5a5;">
-                        {{ message }}
-                    </div>
+                    <div class="alert alert-danger py-2 small">{{ message }}</div>
                 {% endfor %}
             {% endif %}
 
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="submit-btn">Continue to Compatibility Questionnaire &rarr;</button>
+                
+                <div class="mb-3">
+                    <label class="form-label text-secondary small fw-bold">Full Name:</label>
+                    {{ form.full_name }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Age:</label>
+                        {{ form.age }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Phone Number:</label>
+                        {{ form.phone }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Gender:</label>
+                        {{ form.gender }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Seeking:</label>
+                        {{ form.seeking }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">City:</label>
+                        {{ form.city }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Country:</label>
+                        {{ form.country }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary small fw-bold">Occupation / Profession:</label>
+                    {{ form.occupation }}
+                </div>
+
+                <h5 class="text-warning fw-bold mt-4 mb-3 border-bottom pb-2" style="font-size: 1rem;">🧬 Quick Facts & Lifestyle</h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Height:</label>
+                        {{ form.height }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Body Type:</label>
+                        {{ form.body_type }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Ethnicity:</label>
+                        {{ form.ethnicity }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Marital Status:</label>
+                        {{ form.marital_status }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Languages Spoken:</label>
+                        {{ form.languages_spoken }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Religion:</label>
+                        {{ form.religion }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Smoking:</label>
+                        {{ form.smoking }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Drinking:</label>
+                        {{ form.drinking }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Diet:</label>
+                        {{ form.dietary_preferences }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Children:</label>
+                        {{ form.children }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Education Level:</label>
+                        {{ form.education_level }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Zodiac Sign:</label>
+                        {{ form.zodiac_sign }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary small fw-bold">Profile Picture:</label>
+                    <input type="file" name="profile_image" class="form-control bg-dark text-white border-secondary" accept="image/*">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-secondary small fw-bold">Short Bio / About Yourself:</label>
+                    {{ form.bio }}
+                </div>
+
+                <button type="submit" class="btn btn-rose">Continue to Questionnaire ➔</button>
             </form>
         </div>
     </div>
