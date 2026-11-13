@@ -28,6 +28,7 @@ class MatchProfile(models.Model):
   country = models.CharField(max_length=100)
   state = models.CharField(max_length=100, blank=True, null=True)
   city = models.CharField(max_length=100, blank=True, null=True)
+  zip_code = models.CharField(max_length=20, blank=True, null=True)
   occupation = models.CharField(max_length=100)
   bio = models.TextField()
   profile_image = models.ImageField(upload_to='profiles/', blank=True, null=True)
@@ -40,6 +41,7 @@ class MatchProfile(models.Model):
 
   smoking = models.CharField(max_length=30, blank=True, null=True)
   drinking = models.CharField(max_length=30, blank=True, null=True)
+  diet = models.CharField(max_length=50, blank=True, null=True)
   dietary_preferences = models.CharField(max_length=50, blank=True, null=True)
   children = models.CharField(max_length=50, blank=True, null=True)
   education_level = models.CharField(max_length=50, blank=True, null=True)
