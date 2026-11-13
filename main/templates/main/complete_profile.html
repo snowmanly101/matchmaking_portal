@@ -12,6 +12,7 @@
         .brand-logo { font-weight: 700; letter-spacing: 2px; background: linear-gradient(45deg, #f43f5e, #fb7185); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .btn-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); border: none; color: white; font-weight: 600; padding: 10px 20px; border-radius: 50px; width: 100%; transition: all 0.3s ease; }
         .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(244, 63, 94, 0.4); color: white; }
+        .errorlist { color: #fb7185; font-size: 0.85rem; list-style-type: none; padding-left: 0; margin-top: 4px; }
     </style>
 </head>
 <body class="d-flex align-items-center justify-content-center min-vh-100 py-5">
@@ -28,6 +29,12 @@
             </div>
             <p class="text-secondary small mb-4">Provide your background information and lifestyle facts so our matchmakers can find your ideal matches.</p>
 
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2 small">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-danger py-2 small">{{ message }}</div>
@@ -40,16 +47,19 @@
                 <div class="mb-3">
                     <label class="form-label text-secondary small fw-bold">Full Name:</label>
                     {{ form.full_name }}
+                    {{ form.full_name.errors }}
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Age:</label>
                         {{ form.age }}
+                        {{ form.age.errors }}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Phone Number:</label>
                         {{ form.phone }}
+                        {{ form.phone.errors }}
                     </div>
                 </div>
 
@@ -57,27 +67,44 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Gender:</label>
                         {{ form.gender }}
+                        {{ form.gender.errors }}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Seeking:</label>
                         {{ form.seeking }}
+                        {{ form.seeking.errors }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-secondary small fw-bold">City:</label>
+                        {{ form.city }}
+                        {{ form.city.errors }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-secondary small fw-bold">State / Region:</label>
+                        {{ form.state }}
+                        {{ form.state.errors }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Zip Code:</label>
+                        {{ form.zip_code }}
+                        {{ form.zip_code.errors }}
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-secondary small fw-bold">City:</label>
-                        {{ form.city }}
-                    </div>
-                    <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Country:</label>
                         {{ form.country }}
+                        {{ form.country.errors }}
                     </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label text-secondary small fw-bold">Occupation / Profession:</label>
-                    {{ form.occupation }}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary small fw-bold">Occupation / Profession:</label>
+                        {{ form.occupation }}
+                        {{ form.occupation.errors }}
+                    </div>
                 </div>
 
                 <h5 class="text-warning fw-bold mt-4 mb-3 border-bottom pb-2" style="font-size: 1rem;">🧬 Quick Facts & Lifestyle</h5>
@@ -86,10 +113,12 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Height:</label>
                         {{ form.height }}
+                        {{ form.height.errors }}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Body Type:</label>
                         {{ form.body_type }}
+                        {{ form.body_type.errors }}
                     </div>
                 </div>
 
@@ -97,10 +126,12 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Ethnicity:</label>
                         {{ form.ethnicity }}
+                        {{ form.ethnicity.errors }}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Marital Status:</label>
                         {{ form.marital_status }}
+                        {{ form.marital_status.errors }}
                     </div>
                 </div>
 
@@ -108,10 +139,12 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Languages Spoken:</label>
                         {{ form.languages_spoken }}
+                        {{ form.languages_spoken.errors }}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Religion:</label>
                         {{ form.religion }}
+                        {{ form.religion.errors }}
                     </div>
                 </div>
 
@@ -119,21 +152,25 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Smoking:</label>
                         {{ form.smoking }}
+                        {{ form.smoking.errors }}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Drinking:</label>
                         {{ form.drinking }}
+                        {{ form.drinking.errors }}
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Diet:</label>
-                        {{ form.dietary_preferences }}
+                        {{ form.diet }}
+                        {{ form.diet.errors }}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Children:</label>
                         {{ form.children }}
+                        {{ form.children.errors }}
                     </div>
                 </div>
 
@@ -141,21 +178,25 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Education Level:</label>
                         {{ form.education_level }}
+                        {{ form.education_level.errors }}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-secondary small fw-bold">Zodiac Sign:</label>
                         {{ form.zodiac_sign }}
+                        {{ form.zodiac_sign.errors }}
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label text-secondary small fw-bold">Profile Picture:</label>
-                    <input type="file" name="profile_image" class="form-control bg-dark text-white border-secondary" accept="image/*">
+                    {{ form.profile_image }}
+                    {{ form.profile_image.errors }}
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label text-secondary small fw-bold">Short Bio / About Yourself:</label>
                     {{ form.bio }}
+                    {{ form.bio.errors }}
                 </div>
 
                 <button type="submit" class="btn btn-rose">Continue to Questionnaire ➔</button>

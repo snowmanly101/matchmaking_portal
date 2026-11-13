@@ -33,21 +33,19 @@
 
     <div class="header" style="margin-top: 20px;">
         {% if target_profile.profile_image %}
-            <img src="{{ target_profile.profile_image.url }}" alt="Profile">
+            <img src="{{ target_profile.profile_image.url }}" alt="Profile Image">
         {% else %}
-            <img src="https://via.placeholder.com/130" alt="Profile">
+            <img src="https://via.placeholder.com/130" alt="Default Profile">
         {% endif %}
         <div style="flex: 1;">
-            <!-- Match Highlight Badge -->
             <div class="match-badge">✨ Shared Compatibility Match</div>
             
             <h1 style="margin: 0; font-size: 28px;">{{ target_profile.full_name }}, {{ target_profile.age }}</h1>
-            <p style="color: #94a3b8; margin: 6px 0;">📍 {{ target_profile.country }} | 💼 {{ target_profile.occupation }} | 🚻 {{ target_profile.gender }}</p>
+            <p style="color: #94a3b8; margin: 6px 0;">📍 {{ target_profile.city }}, {{ target_profile.country }} | 💼 {{ target_profile.occupation }} | 🚻 {{ target_profile.gender }}</p>
             <p style="margin-top: 10px; font-style: italic; color: #e2e8f0;">"{{ target_profile.bio }}"</p>
         </div>
     </div>
 
-    <!-- Quick Actions (Heart Profile State Fixed) -->
     <div class="actions">
         <a href="{% url 'toggle_like' target_profile.id %}" class="btn {% if has_liked %}btn-liked{% else %}btn-like{% endif %}">
             {% if has_liked %}❤️ Liked (Unheart){% else %}🤍 Heart Profile{% endif %}
@@ -57,7 +55,6 @@
         {% endif %}
     </div>
 
-    <!-- The Details Grid (Physical & Lifestyle Attributes) -->
     <h3 style="margin-top: 30px; color: #f8fafc;">Quick Facts & Lifestyle</h3>
     <div class="details-grid">
         <div class="detail-item">📏 <strong>Height:</strong> {{ target_profile.height|default:"Not specified" }}</div>
@@ -67,15 +64,14 @@
         <div class="detail-item">💬 <strong>Languages:</strong> {{ target_profile.languages_spoken|default:"English" }}</div>
         <div class="detail-item">🚭 <strong>Smoking:</strong> {{ target_profile.smoking|default:"Not specified" }}</div>
         <div class="detail-item">🍷 <strong>Drinking:</strong> {{ target_profile.drinking|default:"Not specified" }}</div>
-        <div class="detail-item">🥗 <strong>Diet:</strong> {{ target_profile.dietary_preferences|default:"Not specified" }}</div>
+        <div class="detail-item">🥗 <strong>Diet:</strong> {{ target_profile.diet|default:"Not specified" }}</div>
         <div class="detail-item">👶 <strong>Children:</strong> {{ target_profile.children|default:"Not specified" }}</div>
         <div class="detail-item">🎓 <strong>Education:</strong> {{ target_profile.education_level|default:"Not specified" }}</div>
         <div class="detail-item">🕊️ <strong>Religion:</strong> {{ target_profile.religion|default:"Not specified" }}</div>
         <div class="detail-item">⭐ <strong>Zodiac:</strong> {{ target_profile.zodiac_sign|default:"Not specified" }}</div>
     </div>
 
-    <!-- Photo Gallery Grid (Capped at 7 Photos) -->
-    <h3 style="margin-top: 30px; color: #f8fafc;">Photo Gallery ({{ target_profile.photos.count }}/7)</h3>
+    <h3 style="margin-top: 30px; color: #f8fafc;">Photo Gallery</h3>
     <div class="gallery-grid">
         {% for photo in target_profile.photos.all %}
             <img src="{{ photo.image.url }}" alt="Gallery Photo">
@@ -86,7 +82,6 @@
 
     <hr style="border-color: #334155; margin: 30px 0;">
 
-    <!-- QUESTIONNAIRE SECTION -->
     <h2>9 Deep Questionnaire Answers</h2>
 
     {% if can_see_questionnaire %}
